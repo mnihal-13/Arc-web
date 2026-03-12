@@ -168,12 +168,12 @@
         .content-block {
             max-width: 550px;
             /* background: rgba(255, 255, 255, 0.55); */
-            /* backdrop-filter: blur(25px); */
-            /* -webkit-backdrop-filter: blur(25px); */
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
             padding: 3.5rem;
             border-radius: 24px;
-            /* border: 1px solid rgba(255, 255, 255, 0.5); */
-            /* box-shadow: 0 30px 60px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04); */
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
             opacity: 0;
             transform: translateY(30px);
         }
@@ -182,37 +182,38 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            perspective: 2000px;
+            perspective: 800px;
+            perspective-origin: 50% 60%;
             overflow: hidden;
         }
 
         .text-3d-wrapper {
             position: relative;
             transform-style: preserve-3d;
-            height: 200px;
             display: flex;
             align-items: center;
             justify-content: center;
-            /* Initial state: rotated away to sweep in from "behind" */
-            transform: rotateY(-80deg) translateZ(-400px);
+            flex-wrap: wrap;
+            max-width: 90vw;
         }
 
         .char-3d {
-            position: absolute;
+            display: inline-block;
             font-family: 'Syne', sans-serif;
-            font-size: 8vw;
+            font-size: 5vw;
             font-weight: 800;
             color: #111;
             text-transform: uppercase;
-            white-space: nowrap;
-            backface-visibility: hidden;
-            letter-spacing: -2px;
-            text-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            white-space: pre;
+            letter-spacing: -0.02em;
+            line-height: 1;
+            transform-style: preserve-3d;
+            will-change: transform, opacity;
         }
 
         @media (max-width: 768px) {
             .char-3d {
-                font-size: 15vw;
+                font-size: 12vw;
             }
         }
 
@@ -335,7 +336,7 @@
         <div class="section" id="sec2">
             <div class="text-3d-wrapper" id="text3d">
                 <!-- Characters will be injected here via JS -->
-                TACTILE REALITY
+                TACTILE <br> REALITY
             </div>
         </div>
 
@@ -393,22 +394,29 @@
         gsap.ticker.add((time) => { lenis.raf(time * 1000); });
         gsap.ticker.lagSmoothing(0);
 
-        // Prep 3D Characters for Sec2 (Early Splitting)
+        // Prep 3D Characters for Sec2 — real 3D depth positioning
         const text3d = document.getElementById('text3d');
         const textContent = text3d ? text3d.textContent.trim() : '';
         let chars = [];
         if (text3d) {
             text3d.innerHTML = '';
+            const total = textContent.length;
             chars = textContent.split('').map((char, i) => {
                 const span = document.createElement('span');
                 span.textContent = char === ' ' ? '\u00A0' : char;
                 span.className = 'char-3d';
                 text3d.appendChild(span);
-                const angle = (i - textContent.length / 2) * 8;
+                
+                // Each char starts deep behind, below, and tilted
+                // The further right the character, the deeper behind it starts
+                // This creates a staggered depth along the text
+                const depthOffset = (i / total) * 400; // progressive depth
                 gsap.set(span, {
-                    rotationY: angle,
-                    translateZ: 600,
-                    transformOrigin: `50% 50% -600px`
+                    opacity: 0,
+                    z: -1200 - depthOffset,   // Deep behind the screen
+                    y: 200 + (i * 8),          // Below, staggered vertically
+                    rotateX: -90,              // Tilted back (face-down)
+                    transformOrigin: '50% 100%'
                 });
                 return span;
             });
@@ -425,6 +433,7 @@
                 } else {
                     const span = document.createElement('span');
                     span.textContent = char;
+                    span.style.display = 'inline-block';
                     element.appendChild(span);
                     spans.push(span);
                 }
@@ -432,31 +441,20 @@
             return spans;
         }
 
-        // --- SEC1 INITIAL LOAD ANIMATION (Small scale up reveal) ---
+        // --- SEC1 INITIAL LOAD ANIMATION ---
         const sec1Block = document.querySelector('#sec1 .content-block');
         if (sec1Block) {
             const sec1H = sec1Block.querySelector('h1');
             const sec1P = sec1Block.querySelector('p');
             const sec1Btn = sec1Block.querySelector('.btn');
-            
-            // Initial delay to let the Three.js scene settle before text pops in
             const loadDelay = 1.5; 
-            
             if (sec1H) {
                 const lines = sec1H.innerHTML.split('<br>');
                 sec1H.innerHTML = lines.map(l => `<span style="display:block;overflow:hidden;"><span class="line-inner" style="display:block;transform:translateY(100%);opacity:0;">${l}</span></span>`).join('');
+                gsap.set(sec1H.querySelectorAll('.line-inner'), { scale: 0.9, y: "110%", opacity: 0 });
                 gsap.to(sec1H.querySelectorAll('.line-inner'), {
-                    y: 0, 
-                    opacity: 1, 
-                    scale: 1, // Target scale
-                    stagger: 0.15, 
-                    duration: 1.2, 
-                    ease: "power3.out",
-                    delay: loadDelay
+                    y: "0%", opacity: 1, scale: 1, stagger: 0.15, duration: 1.2, ease: "power3.out", delay: loadDelay
                 });
-                
-                // Set initial scale state
-                gsap.set(sec1H.querySelectorAll('.line-inner'), { scale: 0.9 });
             }
             if (sec1P) {
                 const pChars = splitTextToSpans(sec1P);
@@ -473,12 +471,30 @@
             }
         }
 
+        // SEC2: 3D curved-path character reveal
+        // Characters fly from deep behind, the perspective projection
+        // naturally curves the motion path as they come forward
         if (chars && chars.length) {
+            const textTL = gsap.timeline({
+                scrollTrigger: {
+                    trigger: '#sec2',
+                    start: 'top 80%',
+                    end: 'bottom 60%',
+                    scrub: 1.5
+                }
+            });
+
+            // Animate each character from deep 3D space to its final flat position
+            // The simultaneous Z + Y + rotateX animation through perspective = curved arc
             chars.forEach((span, i) => {
-                gsap.fromTo(span, { opacity: 0, scale: 0.6, rotationX: 45 }, {
-                    opacity: 1, scale: 1, rotationX: 0, duration: 0.8, ease: "power3.out",
-                    scrollTrigger: { trigger: '#sec2', start: "top 80%", end: "center center", scrub: 1.2 }
-                });
+                textTL.to(span, {
+                    opacity: 1,
+                    z: 0,          // Come forward to the screen plane
+                    y: 0,          // Rise to natural position
+                    rotateX: 0,    // Flatten out (was tilted back)
+                    duration: 0.8,
+                    ease: 'power2.out'
+                }, i * 0.04); // Stagger: each char starts 0.04s after the previous
             });
         }
 
