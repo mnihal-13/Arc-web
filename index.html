@@ -1,0 +1,1931 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CREO | Precision Engineering</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <!-- LENIS SMOOTH SCROLL -->
+    <script src="https://unpkg.com/lenis@1.1.20/dist/lenis.min.js"></script>
+    <style>
+        html.lenis,
+        html.lenis body {
+            height: auto;
+        }
+
+        .lenis.lenis-smooth {
+            scroll-behavior: auto !important;
+        }
+
+        .lenis.lenis-smooth [data-lenis-prevent] {
+            overscroll-behavior: contain;
+        }
+
+        .lenis.lenis-stopped {
+            overflow: hidden;
+        }
+
+        .lenis.lenis-scrolling iframe {
+            pointer-events: none;
+        }
+    </style>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f2f0ec;
+            color: #111;
+            font-family: 'Syne', sans-serif;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        #webgl-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .scroll-container {
+            position: relative;
+            z-index: 10;
+        }
+
+        nav {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 5rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(7px);
+            -webkit-backdrop-filter: blur(7px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            z-index: 1000;
+            transition: background 0.4s ease;
+        }
+
+        nav:hover {
+            background: rgba(255, 255, 255, 0.7);
+        }
+
+        .logo {
+            font-size: 1.2rem;
+            font-weight: 800;
+            text-decoration: none;
+            color: #111;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            transition: opacity 0.3s ease;
+        }
+
+        .logo:hover {
+            opacity: 0.7;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 3rem;
+            list-style: none;
+        }
+
+        .nav-links li {
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links li:hover {
+            color: #111;
+        }
+
+        .nav-links li::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: #D4572A;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .nav-links li:hover::after {
+            width: 80%;
+        }
+
+        .nav-cta {
+            padding: 0.9rem 2.2rem;
+            background: #111;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 100px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .nav-cta:hover {
+            background: #D4572A;
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(212, 87, 42, 0.3);
+        }
+
+        .section {
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            align-items: center;
+            padding: 0 10vw;
+            position: relative;
+        }
+
+        .content-block {
+            max-width: 550px;
+            /* background: rgba(255, 255, 255, 0.55); */
+            /* backdrop-filter: blur(25px); */
+            /* -webkit-backdrop-filter: blur(25px); */
+            padding: 3.5rem;
+            border-radius: 24px;
+            /* border: 1px solid rgba(255, 255, 255, 0.5); */
+            /* box-shadow: 0 30px 60px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04); */
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        #sec2 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 2000px;
+            overflow: hidden;
+        }
+
+        .text-3d-wrapper {
+            position: relative;
+            transform-style: preserve-3d;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* Initial state: rotated away to sweep in from "behind" */
+            transform: rotateY(-80deg) translateZ(-400px);
+        }
+
+        .char-3d {
+            position: absolute;
+            font-family: 'Syne', sans-serif;
+            font-size: 8vw;
+            font-weight: 800;
+            color: #111;
+            text-transform: uppercase;
+            white-space: nowrap;
+            backface-visibility: hidden;
+            letter-spacing: -2px;
+            text-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .char-3d {
+                font-size: 15vw;
+            }
+        }
+
+        h1,
+        h2 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.05;
+            margin-bottom: 1.5rem;
+            letter-spacing: -1px;
+        }
+
+        p {
+            font-size: 1.15rem;
+            color: #444;
+            line-height: 1.6;
+            margin-bottom: 2.5rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 1.2rem 2.5rem;
+            background: #D4572A;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(212, 87, 42, 0.35);
+        }
+
+        .align-right {
+            justify-content: flex-end;
+        }
+
+        .align-left {
+            justify-content: flex-start;
+        }
+
+        .align-center {
+            justify-content: center;
+            text-align: center;
+        }
+
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #f2f0ec;
+            z-index: 999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        #loader span {
+            font-weight: 800;
+            font-size: 2rem;
+            color: #111;
+            letter-spacing: 3px;
+        }
+
+        #loader .loader-bar {
+            width: 120px;
+            height: 2px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        #loader .loader-bar-fill {
+            width: 0%;
+            height: 100%;
+            background: #111;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="loader">
+        <span>INITIATING...</span>
+        <div class="loader-bar">
+            <div class="loader-bar-fill"></div>
+        </div>
+    </div>
+
+    <canvas id="webgl-canvas"></canvas>
+
+    <nav>
+        <a href="#" class="logo">CREO</a>
+        <ul class="nav-links">
+            <li>Vision</li>
+            <li>Engineering</li>
+            <li>Construct</li>
+        </ul>
+        <a href="#" class="nav-cta">Start project</a>
+    </nav>
+
+    <div class="scroll-container">
+        <div class="section align-left" id="sec1">
+            <div class="content-block intro-block">
+                <h1>Precision<br>Engineering</h1>
+                <p>It starts with absolute precision. We translate rigorous architectural drafting into high-fidelity,
+                    3D printed habitats.</p>
+                <a href="#" class="btn">Initiate Project</a>
+            </div>
+        </div>
+
+        <div class="section" id="sec2">
+            <div class="text-3d-wrapper" id="text3d">
+                <!-- Characters will be injected here via JS -->
+                TACTILE REALITY
+            </div>
+        </div>
+
+        <div class="section align-left" id="sec3">
+            <div class="content-block">
+                <h2>Urban Scale</h2>
+                <p>We engineer communities. Seamlessly integrating bold, futuristic geometry into the existing urban
+                    landscape with perfect scale.</p>
+            </div>
+        </div>
+
+        <div class="section align-right" id="sec4">
+            <div class="content-block">
+                <h2>Interior Living</h2>
+                <p>Step inside. Every space is considered — curated materials, warm light, and purposeful design
+                    converge into a living experience.</p>
+            </div>
+        </div>
+
+        <div class="section" id="sec5"></div>
+
+        <div class="section align-center" id="sec6">
+            <div class="content-block" style="margin-top: -20vh;">
+                <h2>Build With Us</h2>
+                <a href="#" class="btn" style="background: #111;">Enter The Future</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+
+        // =============================================
+        // 1. EARLY ANIMATION INITIALIZATION
+        // =============================================
+
+        // Initialize Lenis Smooth Scroll
+        const lenis = new Lenis({
+            duration: 1.5,
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+            orientation: 'vertical',
+            gestureOrientation: 'vertical',
+            smoothWheel: true,
+            wheelMultiplier: 1,
+            touchMultiplier: 2,
+            infinite: false,
+        });
+
+        // Sync Lenis with ScrollTrigger
+        lenis.on('scroll', ScrollTrigger.update);
+        gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+        gsap.ticker.lagSmoothing(0);
+
+        // Prep 3D Characters for Sec2 (Early Splitting)
+        const text3d = document.getElementById('text3d');
+        const textContent = text3d ? text3d.textContent.trim() : '';
+        let chars = [];
+        if (text3d) {
+            text3d.innerHTML = '';
+            chars = textContent.split('').map((char, i) => {
+                const span = document.createElement('span');
+                span.textContent = char === ' ' ? '\u00A0' : char;
+                span.className = 'char-3d';
+                text3d.appendChild(span);
+                const angle = (i - textContent.length / 2) * 8;
+                gsap.set(span, {
+                    rotationY: angle,
+                    translateZ: 600,
+                    transformOrigin: `50% 50% -600px`
+                });
+                return span;
+            });
+        }
+
+        // --- CUSTOM VANILLA JS TEXT SPLITTER ---
+        function splitTextToSpans(element) {
+            const text = element.textContent.trim();
+            element.innerHTML = '';
+            const spans = [];
+            text.split('').forEach(char => {
+                if (char === ' ') {
+                    element.appendChild(document.createTextNode(' '));
+                } else {
+                    const span = document.createElement('span');
+                    span.textContent = char;
+                    element.appendChild(span);
+                    spans.push(span);
+                }
+            });
+            return spans;
+        }
+
+        // --- SEC1 INITIAL LOAD ANIMATION (Small scale up reveal) ---
+        const sec1Block = document.querySelector('#sec1 .content-block');
+        if (sec1Block) {
+            const sec1H = sec1Block.querySelector('h1');
+            const sec1P = sec1Block.querySelector('p');
+            const sec1Btn = sec1Block.querySelector('.btn');
+            
+            // Initial delay to let the Three.js scene settle before text pops in
+            const loadDelay = 1.5; 
+            
+            if (sec1H) {
+                const lines = sec1H.innerHTML.split('<br>');
+                sec1H.innerHTML = lines.map(l => `<span style="display:block;overflow:hidden;"><span class="line-inner" style="display:block;transform:translateY(100%);opacity:0;">${l}</span></span>`).join('');
+                gsap.to(sec1H.querySelectorAll('.line-inner'), {
+                    y: 0, 
+                    opacity: 1, 
+                    scale: 1, // Target scale
+                    stagger: 0.15, 
+                    duration: 1.2, 
+                    ease: "power3.out",
+                    delay: loadDelay
+                });
+                
+                // Set initial scale state
+                gsap.set(sec1H.querySelectorAll('.line-inner'), { scale: 0.9 });
+            }
+            if (sec1P) {
+                const pChars = splitTextToSpans(sec1P);
+                gsap.fromTo(pChars, 
+                    { opacity: 0 }, 
+                    { opacity: 1, stagger: 0.02, duration: 0.01, ease: "steps(1)", delay: loadDelay + 0.3 }
+                );
+            }
+            if (sec1Btn) {
+                gsap.fromTo(sec1Btn, 
+                    { y: 30, opacity: 0, scale: 0.85 }, 
+                    { y: 0, opacity: 1, scale: 1, duration: 0.8, delay: loadDelay + 0.5, ease: "back.out(1.4)" }
+                );
+            }
+        }
+
+        if (chars && chars.length) {
+            chars.forEach((span, i) => {
+                gsap.fromTo(span, { opacity: 0, scale: 0.6, rotationX: 45 }, {
+                    opacity: 1, scale: 1, rotationX: 0, duration: 0.8, ease: "power3.out",
+                    scrollTrigger: { trigger: '#sec2', start: "top 80%", end: "center center", scrub: 1.2 }
+                });
+            });
+        }
+
+        ['#sec3', '#sec4', '#sec6'].forEach(secId => {
+            const block = document.querySelector(`${secId} .content-block`);
+            if (!block) return;
+            const heading = block.querySelector('h2');
+            const para = block.querySelector('p');
+            const btn = block.querySelector('.btn');
+            if (heading) {
+                gsap.fromTo(heading, { y: 60, opacity: 0, clipPath: "inset(100% 0% 0% 0%)" }, {
+                    y: 0, opacity: 1, clipPath: "inset(0% 0% 0% 0%)", duration: 1.2, ease: "power3.out",
+                    scrollTrigger: { trigger: block, start: "top 82%", end: "top 40%", scrub: 1 }
+                });
+            }
+            if (para) {
+                const pChars = splitTextToSpans(para);
+                gsap.fromTo(pChars, 
+                    { opacity: 0 }, 
+                    { opacity: 1, stagger: 0.02, duration: 0.01, ease: "steps(1)", scrollTrigger: { trigger: block, start: "top 75%", end: "top 35%", scrub: 1 } }
+                );
+            }
+            if (btn) {
+                gsap.fromTo(btn, { y: 30, opacity: 0, scale: 0.85 }, { y: 0, opacity: 1, scale: 1, duration: 0.8, ease: "back.out(1.4)", scrollTrigger: { trigger: block, start: "top 68%", end: "top 30%", scrub: 1 } });
+            }
+            gsap.fromTo(block, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out", scrollTrigger: { trigger: block, start: "top 85%", end: "top 55%", scrub: 1 } });
+        });
+
+
+        /* ==========================================
+           1. ADVANCED PROCEDURAL TEXTURE GENERATION
+           ========================================== */
+
+        // --- Value noise foundation ---
+        function hash2D(x, y) {
+            let h = (x * 374761393 + y * 668265263) | 0;
+            h = ((h ^ (h >> 13)) * 1274126177) | 0;
+            return ((h ^ (h >> 16)) & 0xffff) / 65535.0;
+        }
+        function smoothNoise(x, y) {
+            const ix = Math.floor(x), iy = Math.floor(y);
+            const fx = x - ix, fy = y - iy;
+            const sx = fx * fx * (3 - 2 * fx);
+            const sy = fy * fy * (3 - 2 * fy);
+            const a = hash2D(ix, iy), b = hash2D(ix + 1, iy);
+            const c = hash2D(ix, iy + 1), d = hash2D(ix + 1, iy + 1);
+            return a + (b - a) * sx + (c - a) * sy + (a - b - c + d) * sx * sy;
+        }
+        function fbm(x, y, octaves) {
+            let v = 0, amp = 0.5, freq = 1, max = 0;
+            for (let i = 0; i < octaves; i++) {
+                v += amp * smoothNoise(x * freq, y * freq);
+                max += amp; amp *= 0.5; freq *= 2.17;
+            }
+            return v / max;
+        }
+
+        // --- CONCRETE TEXTURE (realistic weathered concrete with form-tie patterns) ---
+        function createConcreteTexture(size) {
+            size = size || 1024;
+            const c = document.createElement('canvas');
+            c.width = size; c.height = size;
+            const ctx = c.getContext('2d');
+            const img = ctx.createImageData(size, size);
+
+            for (let y = 0; y < size; y++) {
+                for (let x = 0; x < size; x++) {
+                    const idx = (y * size + x) * 4;
+                    // Base concrete: layered smooth noise
+                    const base = fbm(x / 120, y / 120, 6);
+                    // Horizontal formwork lines (pour layers)
+                    const formLine = Math.abs(Math.sin(y / 28 * 3.14159)) * 0.05;
+                    // Vertical rain stain streaks
+                    const stain = fbm(x / 15 + 100, y / 200, 3) * 0.12 *
+                        Math.max(0, smoothNoise(x / 60, 0.5) - 0.3);
+                    // Form-tie holes (circular dark spots in grid pattern)
+                    const tieX = ((x % 128) - 64) / 64;
+                    const tieY = ((y % 96) - 48) / 48;
+                    const tieDist = tieX * tieX + tieY * tieY;
+                    const tieHole = tieDist < 0.015 ? 0.15 : 0;
+                    // Surface micro-grain
+                    const grain = (Math.random() - 0.5) * 0.04;
+                    // Aggregate speckle
+                    const speckle = Math.random() > 0.97 ? (Math.random() * 0.08 - 0.04) : 0;
+
+                    let val = 0.62 + base * 0.22 - formLine - stain - tieHole + grain + speckle;
+                    val = Math.max(0, Math.min(1, val));
+
+                    // Warm concrete tint (slight yellow/beige)
+                    img.data[idx] = (val * 235 + 8) | 0;   // R
+                    img.data[idx + 1] = (val * 225 + 6) | 0;   // G
+                    img.data[idx + 2] = (val * 210 + 8) | 0;   // B
+                    img.data[idx + 3] = 255;
+                }
+            }
+            ctx.putImageData(img, 0, 0);
+            const tex = new THREE.CanvasTexture(c);
+            tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+            tex.repeat.set(2, 2);
+            return tex;
+        }
+
+        // --- CONCRETE NORMAL MAP (computed from height data) ---
+        function createConcreteNormalMap(size) {
+            size = size || 512;
+            const c = document.createElement('canvas');
+            c.width = size; c.height = size;
+            const ctx = c.getContext('2d');
+
+            // First generate height field
+            const heights = new Float32Array(size * size);
+            for (let y = 0; y < size; y++) {
+                for (let x = 0; x < size; x++) {
+                    const base = fbm(x / 80, y / 80, 6);
+                    const detail = fbm(x / 15, y / 15, 3) * 0.3;
+                    const micro = (Math.random() - 0.5) * 0.05;
+                    heights[y * size + x] = base + detail + micro;
+                }
+            }
+
+            // Compute normals from height differences
+            const img = ctx.createImageData(size, size);
+            const strength = 3.0;
+            for (let y = 0; y < size; y++) {
+                for (let x = 0; x < size; x++) {
+                    const idx = (y * size + x) * 4;
+                    const x0 = x > 0 ? x - 1 : size - 1;
+                    const x1 = x < size - 1 ? x + 1 : 0;
+                    const y0 = y > 0 ? y - 1 : size - 1;
+                    const y1 = y < size - 1 ? y + 1 : 0;
+
+                    const dx = (heights[y * size + x1] - heights[y * size + x0]) * strength;
+                    const dy = (heights[y1 * size + x] - heights[y0 * size + x]) * strength;
+
+                    // Normal in tangent space
+                    const len = Math.sqrt(dx * dx + dy * dy + 1);
+                    img.data[idx] = ((-dx / len * 0.5 + 0.5) * 255) | 0;
+                    img.data[idx + 1] = ((dy / len * 0.5 + 0.5) * 255) | 0;
+                    img.data[idx + 2] = ((1 / len * 0.5 + 0.5) * 255) | 0;
+                    img.data[idx + 3] = 255;
+                }
+            }
+            ctx.putImageData(img, 0, 0);
+            const tex = new THREE.CanvasTexture(c);
+            tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+            tex.repeat.set(2, 2);
+            return tex;
+        }
+
+        // --- WOOD TEXTURE (procedural grain) ---
+        function createWoodTexture(size) {
+            size = size || 512;
+            const c = document.createElement('canvas');
+            c.width = size; c.height = size;
+            const ctx = c.getContext('2d');
+            const img = ctx.createImageData(size, size);
+
+            for (let y = 0; y < size; y++) {
+                for (let x = 0; x < size; x++) {
+                    const idx = (y * size + x) * 4;
+                    // Wood ring pattern
+                    const distort = fbm(x / 60, y / 60, 3) * 12;
+                    const ring = Math.sin((x + distort) / 8) * 0.5 + 0.5;
+                    // Fine grain lines running horizontally
+                    const grain = fbm(x / 5, y / 300, 2) * 0.15;
+                    // Color variation
+                    const variation = fbm(x / 200, y / 200, 4) * 0.1;
+
+                    const val = 0.45 + ring * 0.2 + grain - variation;
+                    // Warm wood tones
+                    img.data[idx] = Math.min(255, (val * 200 + 60) | 0);  // R
+                    img.data[idx + 1] = Math.min(255, (val * 155 + 40) | 0);  // G
+                    img.data[idx + 2] = Math.min(255, (val * 100 + 25) | 0);  // B
+                    img.data[idx + 3] = 255;
+                }
+            }
+            ctx.putImageData(img, 0, 0);
+            const tex = new THREE.CanvasTexture(c);
+            tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+            tex.repeat.set(1, 1);
+            return tex;
+        }
+
+        // --- AO / ROUGHNESS MAP ---
+        function createRoughnessMap(size) {
+            size = size || 512;
+            const c = document.createElement('canvas');
+            c.width = size; c.height = size;
+            const ctx = c.getContext('2d');
+            const img = ctx.createImageData(size, size);
+            for (let y = 0; y < size; y++) {
+                for (let x = 0; x < size; x++) {
+                    const idx = (y * size + x) * 4;
+                    const n = fbm(x / 50, y / 50, 4);
+                    const val = (0.65 + n * 0.35) * 255;
+                    img.data[idx] = img.data[idx + 1] = img.data[idx + 2] = val | 0;
+                    img.data[idx + 3] = 255;
+                }
+            }
+            ctx.putImageData(img, 0, 0);
+            const tex = new THREE.CanvasTexture(c);
+            tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+            tex.repeat.set(2, 2);
+            return tex;
+        }
+
+        // Generate all textures
+        const concreteColor = createConcreteTexture(1024);
+        const concreteNormal = createConcreteNormalMap(512);
+        const woodColor = createWoodTexture(512);
+        const roughnessMap = createRoughnessMap(512);
+
+        /* ==========================================
+           2. SCENE, RENDERER & CINEMATIC LIGHTING
+           ========================================== */
+        const canvas = document.querySelector('#webgl-canvas');
+        const scene = new THREE.Scene();
+        const bgColor = '#f2f0ec';
+        scene.background = new THREE.Color(bgColor);
+        scene.fog = new THREE.Fog(bgColor, 30, 120);
+
+        const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.1, 300);
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.2;
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        renderer.physicallyCorrectLights = true;
+
+        // Sky hemisphere
+        const hemiLight = new THREE.HemisphereLight(0xfff8f0, 0xb5c0cc, 0.7);
+        scene.add(hemiLight);
+
+        // Main sun — off during sketch
+        const sunLight = new THREE.DirectionalLight(0xfff4e0, 0);
+        sunLight.position.set(40, 60, -30);
+        sunLight.castShadow = true;
+        sunLight.shadow.mapSize.width = 4096;
+        sunLight.shadow.mapSize.height = 4096;
+        sunLight.shadow.camera.near = 0.5;
+        sunLight.shadow.camera.far = 180;
+        sunLight.shadow.camera.left = -45;
+        sunLight.shadow.camera.right = 45;
+        sunLight.shadow.camera.top = 45;
+        sunLight.shadow.camera.bottom = -45;
+        sunLight.shadow.bias = -0.0002;
+        sunLight.shadow.normalBias = 0.03;
+        scene.add(sunLight);
+
+        // Rim / backlight for silhouette definition
+        const rimLight = new THREE.DirectionalLight(0xd0e4ff, 0);
+        rimLight.position.set(-30, 25, 40);
+        scene.add(rimLight);
+
+        // Warm interior glow light (simulates window light spill)
+        const interiorGlow = new THREE.PointLight(0xffd699, 0, 30, 2);
+        interiorGlow.position.set(0, 10, 3);
+        scene.add(interiorGlow);
+
+        // Secondary fill from below-right
+        const fillLight = new THREE.PointLight(0xffe8d0, 0, 40, 2);
+        fillLight.position.set(12, 3, 8);
+        scene.add(fillLight);
+
+        /* ==========================================
+           3. MATERIALS (Photorealistic)
+           ========================================== */
+
+        // --- SKETCH LINE SHADER ---
+        const sketchVert = `
+            attribute float distFromOrigin;
+            varying float vDist;
+            void main() {
+                vDist = distFromOrigin;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+        `;
+        const sketchFrag = `
+            uniform float uProgress;
+            uniform float uMaxDist;
+            uniform float uOpacity;
+            varying float vDist;
+            void main() {
+                float threshold = uProgress * uMaxDist * 1.15;
+                float reveal = smoothstep(threshold, threshold - 4.0, vDist);
+                if (reveal < 0.01) discard;
+                // Drawing tip has a subtle bright accent
+                float tip = smoothstep(threshold - 2.0, threshold - 6.0, vDist);
+                float alpha = reveal * uOpacity * (0.55 + 0.45 * tip);
+                gl_FragColor = vec4(0.12, 0.11, 0.10, alpha);
+            }
+        `;
+
+        const sketchLineMat = new THREE.ShaderMaterial({
+            vertexShader: sketchVert,
+            fragmentShader: sketchFrag,
+            uniforms: {
+                uProgress: { value: 0.0 },
+                uMaxDist: { value: 70.0 },
+                uOpacity: { value: 0.85 }
+            },
+            transparent: true,
+            depthWrite: false
+        });
+
+        // Annotation line material (thin red/amber lines for dimension markers)
+        const annoLineMat = new THREE.ShaderMaterial({
+            vertexShader: sketchVert,
+            fragmentShader: `
+                uniform float uProgress;
+                uniform float uMaxDist;
+                uniform float uOpacity;
+                varying float vDist;
+                void main() {
+                    float threshold = uProgress * uMaxDist * 1.1;
+                    float reveal = smoothstep(threshold, threshold - 2.0, vDist);
+                    if (reveal < 0.01) discard;
+                    gl_FragColor = vec4(0.82, 0.42, 0.15, reveal * uOpacity * 0.45);
+                }
+            `,
+            uniforms: {
+                uProgress: { value: 0.0 },
+                uMaxDist: { value: 70.0 },
+                uOpacity: { value: 0.85 }
+            },
+            transparent: true,
+            depthWrite: false
+        });
+
+        // Grid
+        const gridHelper = new THREE.GridHelper(150, 80, 0xc0b8ac, 0xd5cfc5);
+        gridHelper.position.y = 0.01;
+        gridHelper.material.transparent = true;
+        gridHelper.material.opacity = 0;
+        scene.add(gridHelper);
+
+        // --- CONCRETE ---
+        const concreteMat = new THREE.MeshStandardMaterial({
+            map: concreteColor,
+            normalMap: concreteNormal,
+            normalScale: new THREE.Vector2(0.8, 0.8),
+            roughnessMap: roughnessMap,
+            roughness: 0.88,
+            metalness: 0.02,
+            envMapIntensity: 0.35,
+            transparent: true,
+            opacity: 0
+        });
+
+        // --- DARK CONCRETE (for base/shadows) ---
+        const darkConcreteMat = new THREE.MeshStandardMaterial({
+            map: concreteColor,
+            normalMap: concreteNormal,
+            normalScale: new THREE.Vector2(0.6, 0.6),
+            roughness: 0.92,
+            metalness: 0.01,
+            color: 0xc8c0b5,
+            transparent: true,
+            opacity: 0
+        });
+
+        // --- WOOD (warm accents, soffits, overhangs) ---
+        const woodMat = new THREE.MeshStandardMaterial({
+            map: woodColor,
+            roughness: 0.7,
+            metalness: 0.0,
+            normalMap: concreteNormal,
+            normalScale: new THREE.Vector2(0.3, 0.3),
+            transparent: true,
+            opacity: 0
+        });
+
+        // --- GLASS (semi-transparent, warm interior glow) ---
+        const glassMat = new THREE.MeshPhysicalMaterial({
+            color: 0x88aacc,
+            roughness: 0.05,
+            metalness: 0.1,
+            transmission: 0.6,
+            transparent: true,
+            opacity: 0,
+            envMapIntensity: 0.8,
+            clearcoat: 1.0
+        });
+
+        // --- WARM GLASS INTERIOR (emissive glow panels) ---
+        const glassGlowMat = new THREE.MeshStandardMaterial({
+            color: 0xffd080,
+            emissive: 0xffb347,
+            emissiveIntensity: 0,     // Animated on reveal
+            roughness: 0.2,
+            metalness: 0.0,
+            transparent: true,
+            opacity: 0
+        });
+
+        // --- STEEL FRAME (dark mullions) ---
+        const steelMat = new THREE.MeshStandardMaterial({
+            color: 0x2a2a2a,
+            roughness: 0.4,
+            metalness: 0.7,
+            transparent: true,
+            opacity: 0
+        });
+
+        // --- GROUND ---
+        const groundMat = new THREE.MeshStandardMaterial({
+            map: concreteColor,
+            normalMap: concreteNormal,
+            normalScale: new THREE.Vector2(0.4, 0.4),
+            roughness: 0.95,
+            metalness: 0.0,
+            color: 0xd8d2c8,
+            transparent: true,
+            opacity: 0
+        });
+
+        // Collect all clay-phase materials for batch animation
+        const allClayMats = [concreteMat, darkConcreteMat, woodMat, glassMat, glassGlowMat, steelMat, groundMat];
+
+        /* ==========================================
+           4. EDGE & ANNOTATION SYSTEM
+           ========================================== */
+        const allEdgeObjects = [];
+
+        function addEdges(geo, x, y, z, mesh, mat) {
+            const edges = new THREE.EdgesGeometry(geo, 22); // 22° threshold for smoother look
+            const pos = edges.getAttribute('position');
+            const distArr = new Float32Array(pos.count);
+            for (let i = 0; i < pos.count; i++) {
+                const px = pos.getX(i) + x, py = pos.getY(i) + y, pz = pos.getZ(i) + z;
+                distArr[i] = Math.sqrt(px * px + py * py + pz * pz);
+            }
+            edges.setAttribute('distFromOrigin', new THREE.BufferAttribute(distArr, 1));
+            const lines = new THREE.LineSegments(edges, mat || sketchLineMat);
+            mesh.add(lines);
+            allEdgeObjects.push({ distArr });
+        }
+
+        function block(geo, mat, x, y, z, parent, edgeMat) {
+            const m = new THREE.Mesh(geo, mat);
+            m.position.set(x, y, z);
+            m.castShadow = true;
+            m.receiveShadow = true;
+            addEdges(geo, x, y, z, m, edgeMat);
+            parent.add(m);
+            return m;
+        }
+
+        // --- ANNOTATION / DIMENSION LINES ---
+        function addAnnotationLine(from, to, parent) {
+            const points = [new THREE.Vector3(...from), new THREE.Vector3(...to)];
+            const geo = new THREE.BufferGeometry().setFromPoints(points);
+            const pos = geo.getAttribute('position');
+            const distArr = new Float32Array(pos.count);
+            for (let i = 0; i < pos.count; i++) {
+                const px = pos.getX(i), py = pos.getY(i), pz = pos.getZ(i);
+                distArr[i] = Math.sqrt(px * px + py * py + pz * pz);
+            }
+            geo.setAttribute('distFromOrigin', new THREE.BufferAttribute(distArr, 1));
+            const line = new THREE.Line(geo, annoLineMat);
+            parent.add(line);
+            allEdgeObjects.push({ distArr });
+        }
+
+        // Small dot/marker at the end of annotation lines
+        function addAnnotationDot(pos, parent) {
+            const dotGeo = new THREE.SphereGeometry(0.08, 6, 6);
+            const dot = new THREE.Mesh(dotGeo, new THREE.MeshBasicMaterial({
+                color: 0xd17030, transparent: true, opacity: 0.6
+            }));
+            dot.position.set(...pos);
+            parent.add(dot);
+        }
+
+        /* ==========================================
+           5. HERO BUILDING — MODERN CANTILEVERED VILLA
+           ========================================== */
+        const buildingGroup = new THREE.Group();
+        scene.add(buildingGroup);
+
+        const cityGroup = new THREE.Group();
+        scene.add(cityGroup);
+
+        // Ground
+        const groundGeo = new THREE.PlaneGeometry(150, 150, 1, 1);
+        const ground = new THREE.Mesh(groundGeo, groundMat);
+        ground.rotation.x = -Math.PI / 2;
+        ground.receiveShadow = true;
+        scene.add(ground);
+
+        function createHeroBuilding() {
+            const B = buildingGroup;
+
+            // ============= LANDSCAPE / PODIUM =============
+            // Stepped terrace platform
+            block(new THREE.BoxGeometry(18, 0.3, 16), darkConcreteMat, 0, 0.15, 1, B);
+            block(new THREE.BoxGeometry(15, 0.25, 13), concreteMat, 0, 0.4, 0.5, B);
+            // Terrace steps (front)
+            for (let s = 0; s < 4; s++) {
+                block(new THREE.BoxGeometry(8 - s * 0.5, 0.2, 1.2), concreteMat, 0, 0.65 + s * 0.22, 6.5 + s * 0.6, B);
+            }
+
+            // ============= GROUND FLOOR (open, columns + wooden deck) =============
+            const gfY = 1.0;
+            // Floor slab
+            block(new THREE.BoxGeometry(12, 0.35, 10), concreteMat, 0, gfY, 0, B);
+            // Wooden deck surface
+            block(new THREE.BoxGeometry(11.5, 0.06, 9.5), woodMat, 0, gfY + 0.2, 0, B);
+
+            // Columns (thin steel)
+            const colPositions = [[-5, 0, -4], [-5, 0, 4], [5, 0, -4], [5, 0, 4],
+            [-2, 0, -4], [-2, 0, 4], [2, 0, 4]];
+            colPositions.forEach(([cx, _, cz]) => {
+                block(new THREE.BoxGeometry(0.25, 3.8, 0.25), steelMat, cx, gfY + 2.1, cz, B);
+            });
+
+            // ============= FIRST FLOOR (main volume) =============
+            const f1Y = gfY + 4.0;
+            // Slab
+            block(new THREE.BoxGeometry(12.5, 0.3, 10.5), concreteMat, 0, f1Y, 0, B);
+            // Wood soffit under slab
+            block(new THREE.BoxGeometry(12.2, 0.08, 10.2), woodMat, 0, f1Y - 0.19, 0, B);
+
+            // Concrete walls (back + sides)
+            block(new THREE.BoxGeometry(0.3, 3.2, 10), concreteMat, -6.1, f1Y + 1.6, 0, B);  // Left wall
+            block(new THREE.BoxGeometry(12, 3.2, 0.3), concreteMat, 0, f1Y + 1.6, -5.1, B);  // Back wall
+
+            // Glass curtain wall (front)
+            for (let g = 0; g < 5; g++) {
+                const gx = -4.5 + g * 2.3;
+                // Glass pane
+                block(new THREE.BoxGeometry(1.9, 2.8, 0.06), glassMat, gx, f1Y + 1.55, 5, B);
+                // Interior warm glow panel behind glass
+                block(new THREE.BoxGeometry(1.8, 2.6, 0.03), glassGlowMat, gx, f1Y + 1.55, 4.85, B);
+                // Steel mullion
+                block(new THREE.BoxGeometry(0.06, 3.2, 0.12), steelMat, gx + 1.0, f1Y + 1.6, 5, B);
+            }
+
+            // Glass curtain wall (right side)
+            for (let g = 0; g < 4; g++) {
+                const gz = -3.5 + g * 2.2;
+                block(new THREE.BoxGeometry(0.06, 2.8, 1.9), glassMat, 6, f1Y + 1.55, gz, B);
+                block(new THREE.BoxGeometry(0.03, 2.6, 1.8), glassGlowMat, 5.88, f1Y + 1.55, gz, B);
+                block(new THREE.BoxGeometry(0.12, 3.2, 0.06), steelMat, 6, f1Y + 1.6, gz + 1.0, B);
+            }
+
+            // Interior partition wall (adds depth perception)
+            block(new THREE.BoxGeometry(0.15, 2.8, 5), concreteMat, -1, f1Y + 1.55, -1.5, B);
+
+            // ============= SECOND FLOOR (CANTILEVERED VOLUME) =============
+            const f2Y = f1Y + 3.5;
+            // Main slab — extends 3 units beyond the left wall for cantilever effect
+            block(new THREE.BoxGeometry(15, 0.35, 10.5), concreteMat, -1.5, f2Y, 0, B);
+            // Wood soffit on cantilever underside
+            block(new THREE.BoxGeometry(4.5, 0.08, 10.2), woodMat, -7, f2Y - 0.17, 0, B);
+
+            // Concrete privacy walls (cantilevered wing)
+            block(new THREE.BoxGeometry(4.5, 3, 0.3), concreteMat, -7, f2Y + 1.5, -5.1, B); // Back
+            block(new THREE.BoxGeometry(4.5, 3, 0.3), concreteMat, -7, f2Y + 1.5, 5.1, B);  // Front
+            block(new THREE.BoxGeometry(0.3, 3, 10.5), concreteMat, -9.2, f2Y + 1.5, 0, B); // Outer wall
+
+            // Glass on cantilever front
+            for (let g = 0; g < 2; g++) {
+                const gx = -6 - g * 2;
+                block(new THREE.BoxGeometry(1.6, 2.5, 0.06), glassMat, gx, f2Y + 1.4, 5, B);
+                block(new THREE.BoxGeometry(1.5, 2.3, 0.03), glassGlowMat, gx, f2Y + 1.4, 4.88, B);
+            }
+
+            // Main volume second floor walls + glass
+            block(new THREE.BoxGeometry(0.3, 3, 10), concreteMat, 4.8, f2Y + 1.5, 0, B); // Right wall (solid)
+            // Front glass continues
+            for (let g = 0; g < 3; g++) {
+                const gx = -1 + g * 2.3;
+                block(new THREE.BoxGeometry(1.9, 2.5, 0.06), glassMat, gx, f2Y + 1.4, 5, B);
+                block(new THREE.BoxGeometry(1.8, 2.3, 0.03), glassGlowMat, gx, f2Y + 1.4, 4.88, B);
+                block(new THREE.BoxGeometry(0.06, 3, 0.12), steelMat, gx + 1.0, f2Y + 1.5, 5, B);
+            }
+
+            // ============= ROOF / TOP LEVEL =============
+            const roofY = f2Y + 3.3;
+            // Roof slab
+            block(new THREE.BoxGeometry(15.5, 0.3, 11), concreteMat, -1.5, roofY, 0, B);
+            // Roof overhang edge detail
+            block(new THREE.BoxGeometry(15.8, 0.06, 0.4), steelMat, -1.5, roofY + 0.18, 5.5, B);
+            block(new THREE.BoxGeometry(15.8, 0.06, 0.4), steelMat, -1.5, roofY + 0.18, -5.5, B);
+
+            // Rooftop mechanical / penthouse accent
+            block(new THREE.BoxGeometry(3, 1.5, 3), concreteMat, 1, roofY + 1.05, -1, B);
+            block(new THREE.BoxGeometry(2.8, 1.2, 0.06), glassMat, 1, roofY + 0.9, 0.5, B);
+
+            // Antenna / spire
+            block(new THREE.BoxGeometry(0.1, 3.5, 0.1), steelMat, 1, roofY + 2.8, -1, B);
+
+            // ============= LOUVERS / BRISE-SOLEIL =============
+            // Horizontal sun shading on front facade (first floor)
+            for (let lv = 0; lv < 10; lv++) {
+                const lvx = -4.8 + lv * 1.05;
+                block(new THREE.BoxGeometry(0.9, 0.04, 0.6), woodMat, lvx, f1Y + 3.0, 5.4, B);
+            }
+            // Vertical louvers on cantilever wing
+            for (let lv = 0; lv < 6; lv++) {
+                const lvz = -4 + lv * 1.6;
+                block(new THREE.BoxGeometry(0.04, 2.5, 0.35), woodMat, -9.35, f2Y + 1.4, lvz, B);
+            }
+
+            // ============= ARCHITECTURAL ANNOTATION LINES =============
+            // Dimension lines radiating from key building points
+            // Horizontal extent
+            addAnnotationLine([-9.5, 0.5, 8], [-9.5, 0.5, 14], B);
+            addAnnotationLine([6.5, 0.5, 8], [6.5, 0.5, 14], B);
+            addAnnotationLine([-9.5, 0.5, 14], [6.5, 0.5, 14], B);
+            addAnnotationDot([-9.5, 0.5, 8], B);
+            addAnnotationDot([6.5, 0.5, 8], B);
+
+            // Height markers
+            addAnnotationLine([8, 0, 6], [8, roofY + 4, 6], B);
+            addAnnotationLine([7.5, roofY + 4, 6], [8.5, roofY + 4, 6], B);
+            addAnnotationLine([7.5, 0, 6], [8.5, 0, 6], B);
+            addAnnotationDot([8, 0, 6], B);
+            addAnnotationDot([8, roofY + 4, 6], B);
+
+            // Cantilever extent line
+            addAnnotationLine([-9.3, f2Y - 0.5, -6.5], [-9.3, f2Y - 0.5, -10], B);
+            addAnnotationLine([-6, f2Y - 0.5, -6.5], [-6, f2Y - 0.5, -10], B);
+            addAnnotationLine([-9.3, f2Y - 0.5, -10], [-6, f2Y - 0.5, -10], B);
+            addAnnotationDot([-9.3, f2Y - 0.5, -6.5], B);
+            addAnnotationDot([-6, f2Y - 0.5, -6.5], B);
+
+            // Floor datum lines
+            for (let fl = 0; fl < 4; fl++) {
+                const fy = [gfY, f1Y, f2Y, roofY][fl];
+                addAnnotationLine([10, fy, 0], [14, fy, 0], B);
+                addAnnotationDot([10, fy, 0], B);
+            }
+
+            // Diagonal sight line
+            addAnnotationLine([0, roofY + 1, 0], [18, roofY + 6, 15], B);
+            addAnnotationDot([18, roofY + 6, 15], B);
+        }
+        createHeroBuilding();
+
+        /* ==========================================
+           6. BACKGROUND CITY (varied)
+           ========================================== */
+        function createCity() {
+            const sr = (function () { let s = 42; return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; })();
+
+            for (let i = 0; i < 50; i++) {
+                const x = (sr() - 0.5) * 100;
+                const z = (sr() - 0.5) * 100;
+                if (Math.abs(x) < 16 && Math.abs(z) < 14) continue;
+
+                const w = 2 + sr() * 4.5;
+                const d = 2 + sr() * 4.5;
+                const h = 2 + sr() * 16;
+
+                block(new THREE.BoxGeometry(w, h, d), concreteMat, x, h / 2, z, cityGroup);
+
+                if (sr() > 0.55) {
+                    const h2 = h * (0.25 + sr() * 0.25);
+                    block(new THREE.BoxGeometry(w * 0.6, h2, d * 0.6),
+                        sr() > 0.65 ? darkConcreteMat : concreteMat,
+                        x, h + h2 / 2, z, cityGroup);
+                }
+                if (sr() > 0.4) {
+                    block(new THREE.BoxGeometry(w + 0.5, 0.12, d + 0.5), concreteMat, x, h + 0.06, z, cityGroup);
+                }
+            }
+
+            for (let c = 0; c < 5; c++) {
+                const cx = (sr() - 0.5) * 80, cz = (sr() - 0.5) * 80;
+                if (Math.abs(cx) < 18 && Math.abs(cz) < 16) continue;
+                const ch = 5 + sr() * 12, cr = 1.5 + sr() * 2;
+                block(new THREE.CylinderGeometry(cr, cr, ch, 18), concreteMat, cx, ch / 2, cz, cityGroup);
+            }
+        }
+        createCity();
+
+        /* ==========================================
+           7. INTERIOR ROOM — HYPERREALISTIC
+           ========================================== */
+
+        // --- PROCEDURAL ROOM TEXTURES ---
+        function createPlankFloorTexture() {
+            const s = 1024, c = document.createElement('canvas');
+            c.width = s; c.height = s;
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#b8905a'; ctx.fillRect(0, 0, s, s);
+            const plankH = s / 8;
+            for (let row = 0; row < 8; row++) {
+                const y = row * plankH;
+                ctx.fillStyle = '#6b4c2a'; ctx.fillRect(0, y, s, 2);
+                const joints = row % 2 === 0 ? [s * 0.4, s * 0.75] : [s * 0.3, s * 0.65, s * 0.9];
+                joints.forEach(jx => { ctx.fillStyle = '#6b4c2a'; ctx.fillRect(jx, y, 2, plankH); });
+                for (let px = 0; px < s; px += 2) {
+                    for (let py = y + 3; py < y + plankH - 1; py += 3) {
+                        const grain = fbm(px / 8 + row * 50, py / 400, 3);
+                        const v = fbm(px / 100 + row * 10, py / 100, 2) * 25;
+                        ctx.fillStyle = `rgb(${(165 + grain * 40 + v) | 0},${(125 + grain * 30 + v * 0.7) | 0},${(70 + grain * 15 + v * 0.4) | 0})`;
+                        ctx.fillRect(px, py, 2, 3);
+                    }
+                }
+            }
+            const tex = new THREE.CanvasTexture(c); tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(2, 2); return tex;
+        }
+        function createFabricNormal() {
+            const s = 256, c = document.createElement('canvas'); c.width = s; c.height = s;
+            const ctx = c.getContext('2d'); const img = ctx.createImageData(s, s);
+            for (let y = 0; y < s; y++) for (let x = 0; x < s; x++) {
+                const i = (y * s + x) * 4;
+                img.data[i] = ((Math.sin(x * 1.2) * 0.3 + 0.5) * 255) | 0;
+                img.data[i + 1] = ((Math.sin(y * 1.2) * 0.3 + 0.5) * 255) | 0;
+                img.data[i + 2] = 200; img.data[i + 3] = 255;
+            }
+            ctx.putImageData(img, 0, 0);
+            const tex = new THREE.CanvasTexture(c); tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(8, 8); return tex;
+        }
+        function createRugTexture() {
+            const s = 512, c = document.createElement('canvas'); c.width = s; c.height = s;
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#b5aa96'; ctx.fillRect(0, 0, s, s);
+            ctx.strokeStyle = '#8a7d6a'; ctx.lineWidth = 12; ctx.strokeRect(20, 20, s - 40, s - 40);
+            ctx.strokeStyle = '#6b6050'; ctx.lineWidth = 4; ctx.strokeRect(35, 35, s - 70, s - 70);
+            for (let y = 50; y < s - 50; y += 16) for (let x = 50; x < s - 50; x += 16) {
+                ctx.fillStyle = ((x + y) % 32 < 16) ? '#c2b8a5' : '#a89b85'; ctx.fillRect(x, y, 14, 14);
+            }
+            const imgD = ctx.getImageData(0, 0, s, s);
+            for (let i = 0; i < imgD.data.length; i += 4) { const n = (Math.random() - 0.5) * 12; imgD.data[i] += n; imgD.data[i + 1] += n; imgD.data[i + 2] += n; }
+            ctx.putImageData(imgD, 0, 0);
+            const tex = new THREE.CanvasTexture(c); tex.wrapS = tex.wrapT = THREE.RepeatWrapping; return tex;
+        }
+        function createWallPaintTex() {
+            const s = 512, c = document.createElement('canvas'); c.width = s; c.height = s;
+            const ctx = c.getContext('2d'); const img = ctx.createImageData(s, s);
+            for (let y = 0; y < s; y++) for (let x = 0; x < s; x++) {
+                const i = (y * s + x) * 4;
+                const base = 0.35 + fbm(x / 120, y / 120, 4) * 0.08 + Math.sin(y / 3) * 0.01 + (Math.random() - 0.5) * 0.02;
+                img.data[i] = (base * 230 + 25) | 0; img.data[i + 1] = (base * 210 + 20) | 0; img.data[i + 2] = (base * 240 + 30) | 0; img.data[i + 3] = 255;
+            }
+            ctx.putImageData(img, 0, 0);
+            const tex = new THREE.CanvasTexture(c); tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(2, 2); return tex;
+        }
+        const plankFloorTex = createPlankFloorTexture();
+        const fabricNrm = createFabricNormal();
+        const rugTex = createRugTexture();
+        const wallPaintTex = createWallPaintTex();
+
+        // --- ROOM MATERIALS ---
+        const wallMat = new THREE.MeshStandardMaterial({ map: wallPaintTex, roughness: 0.92, normalMap: concreteNormal, normalScale: new THREE.Vector2(0.15, 0.15), transparent: true, opacity: 0 });
+        const floorWoodMat = new THREE.MeshPhysicalMaterial({ map: plankFloorTex, roughness: 0.45, normalMap: concreteNormal, normalScale: new THREE.Vector2(0.3, 0.3), clearcoat: 0.3, clearcoatRoughness: 0.4, transparent: true, opacity: 0 });
+        const sofaMat = new THREE.MeshStandardMaterial({ color: 0xa85c42, roughness: 0.92, normalMap: fabricNrm, normalScale: new THREE.Vector2(0.6, 0.6), transparent: true, opacity: 0 });
+        const sofaDarkMat = new THREE.MeshStandardMaterial({ color: 0x8a4a35, roughness: 0.95, normalMap: fabricNrm, normalScale: new THREE.Vector2(0.4, 0.4), transparent: true, opacity: 0 });
+        const cushionMat = new THREE.MeshStandardMaterial({ color: 0xf0e6d8, roughness: 0.88, normalMap: fabricNrm, normalScale: new THREE.Vector2(0.3, 0.3), transparent: true, opacity: 0 });
+        const cushionAccentMat = new THREE.MeshStandardMaterial({ color: 0xd4a87a, roughness: 0.88, normalMap: fabricNrm, normalScale: new THREE.Vector2(0.3, 0.3), transparent: true, opacity: 0 });
+        const chairMat = new THREE.MeshStandardMaterial({ color: 0x4a7a6a, roughness: 0.85, normalMap: fabricNrm, normalScale: new THREE.Vector2(0.5, 0.5), transparent: true, opacity: 0 });
+        const chairFrameMat = new THREE.MeshPhysicalMaterial({ color: 0xc8a870, roughness: 0.35, metalness: 0.3, clearcoat: 0.2, transparent: true, opacity: 0 });
+        const tableMat = new THREE.MeshPhysicalMaterial({ map: woodColor, roughness: 0.3, clearcoat: 0.5, clearcoatRoughness: 0.2, transparent: true, opacity: 0 });
+        const lampShadeMat = new THREE.MeshStandardMaterial({ color: 0xfff8e8, roughness: 0.6, emissive: 0xffe0a0, emissiveIntensity: 0, transparent: true, opacity: 0, side: THREE.DoubleSide });
+        const lampBaseMat = new THREE.MeshPhysicalMaterial({ color: 0xc8a870, roughness: 0.3, metalness: 0.35, clearcoat: 0.3, transparent: true, opacity: 0 });
+        const tvScreenMat = new THREE.MeshPhysicalMaterial({ color: 0x080808, roughness: 0.02, metalness: 0.6, clearcoat: 1.0, clearcoatRoughness: 0.05, transparent: true, opacity: 0 });
+        const tvBodyMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.3, metalness: 0.5, transparent: true, opacity: 0 });
+        const tvConsoleMat = new THREE.MeshPhysicalMaterial({ map: woodColor, color: 0x705030, roughness: 0.4, clearcoat: 0.3, clearcoatRoughness: 0.3, transparent: true, opacity: 0 });
+        const rugMat = new THREE.MeshStandardMaterial({ map: rugTex, roughness: 1.0, normalMap: fabricNrm, normalScale: new THREE.Vector2(0.2, 0.2), transparent: true, opacity: 0 });
+        const plantPotMat = new THREE.MeshPhysicalMaterial({ color: 0xd8cfc0, roughness: 0.7, clearcoat: 0.15, transparent: true, opacity: 0 });
+        const plantLeafMat = new THREE.MeshStandardMaterial({ color: 0x3d7a30, roughness: 0.75, transparent: true, opacity: 0, side: THREE.DoubleSide });
+        const plantLeafDarkMat = new THREE.MeshStandardMaterial({ color: 0x2a5520, roughness: 0.8, transparent: true, opacity: 0, side: THREE.DoubleSide });
+        const artMats = [
+            new THREE.MeshStandardMaterial({ color: 0xcc3333, roughness: 0.35, normalMap: concreteNormal, normalScale: new THREE.Vector2(0.1, 0.1), transparent: true, opacity: 0 }),
+            new THREE.MeshStandardMaterial({ color: 0xdd7722, roughness: 0.35, normalMap: concreteNormal, normalScale: new THREE.Vector2(0.1, 0.1), transparent: true, opacity: 0 }),
+            new THREE.MeshStandardMaterial({ color: 0x8855aa, roughness: 0.35, normalMap: concreteNormal, normalScale: new THREE.Vector2(0.1, 0.1), transparent: true, opacity: 0 }),
+            new THREE.MeshStandardMaterial({ color: 0x1a3345, roughness: 0.35, normalMap: concreteNormal, normalScale: new THREE.Vector2(0.1, 0.1), transparent: true, opacity: 0 })
+        ];
+        const artFrameMat = new THREE.MeshPhysicalMaterial({ color: 0x35303c, roughness: 0.5, metalness: 0.15, clearcoat: 0.1, transparent: true, opacity: 0 });
+        const windowGlowMat = new THREE.MeshStandardMaterial({ color: 0xfffbe8, emissive: 0xfff0c0, emissiveIntensity: 0, roughness: 0.1, transparent: true, opacity: 0 });
+        const curtainMat = new THREE.MeshStandardMaterial({ color: 0xd4b87a, roughness: 0.92, normalMap: fabricNrm, normalScale: new THREE.Vector2(0.4, 0.4), transparent: true, opacity: 0, side: THREE.DoubleSide });
+        const moldingMat = new THREE.MeshStandardMaterial({ color: 0x504860, roughness: 0.7, metalness: 0.05, transparent: true, opacity: 0 });
+        const metalAccentMat = new THREE.MeshPhysicalMaterial({ color: 0x888888, roughness: 0.15, metalness: 0.85, clearcoat: 0.5, transparent: true, opacity: 0 });
+
+        // --- ROOM LIGHTING ---
+        const ROOM_Y = 5.2;
+        const roomLight = new THREE.PointLight(0xffecd0, 0, 25, 1.5);
+        roomLight.position.set(0, ROOM_Y + 4.0, 0.5); roomLight.castShadow = true;
+        roomLight.shadow.mapSize.set(1024, 1024); scene.add(roomLight);
+        const roomAmbient = new THREE.PointLight(0xfff5e6, 0, 20, 1.5);
+        roomAmbient.position.set(-2, ROOM_Y + 3.5, -2); scene.add(roomAmbient);
+        const windowLight = new THREE.PointLight(0xfffff0, 0, 18, 1.8);
+        windowLight.position.set(-6, ROOM_Y + 2.5, 0); scene.add(windowLight);
+        const lampSpot = new THREE.SpotLight(0xffe8b0, 0, 8, Math.PI / 4, 0.6, 1.5);
+        lampSpot.position.set(-3.4, ROOM_Y + 2.8, -1.5);
+        lampSpot.target.position.set(-3.4, ROOM_Y, -1.5); scene.add(lampSpot); scene.add(lampSpot.target);
+        const bounceFill = new THREE.PointLight(0xffe0c0, 0, 12, 2);
+        bounceFill.position.set(1, ROOM_Y + 0.5, 1); scene.add(bounceFill);
+
+        const allRoomMats = [
+            wallMat, floorWoodMat, sofaMat, sofaDarkMat, cushionMat, cushionAccentMat,
+            chairMat, chairFrameMat, tableMat, lampShadeMat, lampBaseMat,
+            tvScreenMat, tvBodyMat, tvConsoleMat, rugMat,
+            plantPotMat, plantLeafMat, plantLeafDarkMat, ...artMats, artFrameMat,
+            windowGlowMat, curtainMat, moldingMat, metalAccentMat
+        ];
+
+        const roomGroup = new THREE.Group();
+        roomGroup.position.set(0, ROOM_Y, 0); scene.add(roomGroup);
+        const furniturePieces = [];
+
+        function roomBlock(geo, mat, x, y, z, parent) {
+            const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z);
+            m.castShadow = true; m.receiveShadow = true; parent.add(m); return m;
+        }
+        function roomBlockR(geo, mat, x, y, z, rx, ry, rz, parent) {
+            const m = roomBlock(geo, mat, x, y, z, parent); m.rotation.set(rx, ry, rz); return m;
+        }
+        function createFurniturePiece(buildFn) {
+            const group = new THREE.Group(); group.scale.set(0, 0, 0);
+            const mats = buildFn(group); roomGroup.add(group);
+            furniturePieces.push({ group, mats }); return group;
+        }
+
+        // ---- PIECE 0: Room Shell ----
+        createFurniturePiece((g) => {
+            roomBlock(new THREE.BoxGeometry(10, 0.15, 8), floorWoodMat, 0, 0, 0, g);
+            roomBlock(new THREE.BoxGeometry(10.1, 0.06, 8.1), sofaDarkMat, 0, -0.1, 0, g);
+            roomBlock(new THREE.BoxGeometry(10, 0.18, 0.08), moldingMat, 0, 0.16, -3.96, g);
+            roomBlock(new THREE.BoxGeometry(0.08, 0.18, 8), moldingMat, -4.96, 0.16, 0, g);
+            roomBlock(new THREE.BoxGeometry(10, 0.18, 0.08), moldingMat, 0, 0.16, 3.96, g);
+            roomBlock(new THREE.BoxGeometry(0.08, 0.18, 8), moldingMat, 4.96, 0.16, 0, g);
+            roomBlock(new THREE.BoxGeometry(10, 4.5, 0.22), wallMat, 0, 2.35, -4, g);
+            roomBlock(new THREE.BoxGeometry(0.22, 4.5, 8), wallMat, -5, 2.35, 0, g);
+            roomBlock(new THREE.BoxGeometry(10, 0.08, 0.18), moldingMat, 0, 4.56, -3.9, g);
+            roomBlock(new THREE.BoxGeometry(10, 0.14, 0.06), moldingMat, 0, 4.5, -3.88, g);
+            roomBlock(new THREE.BoxGeometry(0.18, 0.08, 8), moldingMat, -4.9, 4.56, 0, g);
+            roomBlock(new THREE.BoxGeometry(0.06, 0.14, 8), moldingMat, -4.88, 4.5, 0, g);
+            // Wainscoting panels — skip the TV area (panels only on left half)
+            for (let p = 0; p < 3; p++) {
+                const px = -3.8 + p * 1.95;
+                roomBlock(new THREE.BoxGeometry(1.7, 3.3, 0.04), artFrameMat, px, 1.95, -3.85, g);
+                roomBlock(new THREE.BoxGeometry(1.4, 2.9, 0.06), wallMat, px, 1.95, -3.83, g);
+            }
+            roomBlock(new THREE.BoxGeometry(0.04, 0.12, 0.08), metalAccentMat, -4.87, 0.6, 1.5, g);
+            return [wallMat, floorWoodMat, artFrameMat, moldingMat, sofaDarkMat, metalAccentMat];
+        });
+
+        // ---- PIECE 1: Window + curtains ----
+        createFurniturePiece((g) => {
+            roomBlock(new THREE.BoxGeometry(0.04, 3.0, 4.5), windowGlowMat, -4.82, 2.2, -0.5, g);
+            roomBlock(new THREE.BoxGeometry(0.1, 3.3, 0.1), metalAccentMat, -4.88, 2.2, -2.75, g);
+            roomBlock(new THREE.BoxGeometry(0.1, 3.3, 0.1), metalAccentMat, -4.88, 2.2, 1.75, g);
+            roomBlock(new THREE.BoxGeometry(0.1, 0.1, 4.6), metalAccentMat, -4.88, 3.85, -0.5, g);
+            roomBlock(new THREE.BoxGeometry(0.1, 0.1, 4.6), metalAccentMat, -4.88, 0.65, -0.5, g);
+            roomBlock(new THREE.BoxGeometry(0.06, 3.0, 0.06), metalAccentMat, -4.86, 2.2, -1.6, g);
+            roomBlock(new THREE.BoxGeometry(0.06, 3.0, 0.06), metalAccentMat, -4.86, 2.2, 0.6, g);
+            roomBlock(new THREE.BoxGeometry(0.06, 0.06, 4.5), metalAccentMat, -4.86, 2.5, -0.5, g);
+            roomBlockR(new THREE.CylinderGeometry(0.03, 0.03, 5.5, 8), metalAccentMat, -4.55, 3.95, -0.5, 0, 0, Math.PI / 2, g);
+            for (let f = 0; f < 4; f++) {
+                const fz = -2.8 + f * 0.25;
+                roomBlock(new THREE.BoxGeometry(0.08, 3.6, 0.22), curtainMat, -4.5, 2.15, fz, g);
+            }
+            for (let f = 0; f < 4; f++) {
+                const fz = 1.1 + f * 0.25;
+                roomBlock(new THREE.BoxGeometry(0.08, 3.6, 0.22), curtainMat, -4.5, 2.15, fz, g);
+            }
+            roomBlock(new THREE.BoxGeometry(0.2, 0.06, 4.8), moldingMat, -4.78, 0.62, -0.5, g);
+            return [windowGlowMat, metalAccentMat, curtainMat, moldingMat];
+        });
+
+        // ---- PIECE 2: Rug ----
+        createFurniturePiece((g) => {
+            roomBlock(new THREE.BoxGeometry(5.2, 0.04, 3.8), rugMat, 0.5, 0.1, 0, g);
+            roomBlock(new THREE.BoxGeometry(5.3, 0.02, 0.06), moldingMat, 0.5, 0.11, -1.9, g);
+            roomBlock(new THREE.BoxGeometry(5.3, 0.02, 0.06), moldingMat, 0.5, 0.11, 1.9, g);
+            return [rugMat, moldingMat];
+        });
+
+        // ---- PIECE 3: Sofa (detailed) ----
+        createFurniturePiece((g) => {
+            const legGeo = new THREE.CylinderGeometry(0.04, 0.05, 0.12, 8);
+            roomBlock(legGeo, chairFrameMat, -2.8, 0.06, -2.0, g);
+            roomBlock(legGeo, chairFrameMat, 0.4, 0.06, -2.0, g);
+            roomBlock(legGeo, chairFrameMat, -2.8, 0.06, -3.0, g);
+            roomBlock(legGeo, chairFrameMat, 0.4, 0.06, -3.0, g);
+            roomBlock(new THREE.BoxGeometry(3.5, 0.45, 1.2), sofaDarkMat, -1.2, 0.35, -2.5, g);
+            roomBlock(new THREE.BoxGeometry(1.55, 0.2, 1.05), sofaMat, -1.95, 0.68, -2.48, g);
+            roomBlock(new THREE.BoxGeometry(1.55, 0.2, 1.05), sofaMat, -0.35, 0.68, -2.48, g);
+            roomBlock(new THREE.BoxGeometry(0.02, 0.12, 1.0), sofaDarkMat, -1.17, 0.72, -2.48, g);
+            roomBlock(new THREE.BoxGeometry(3.5, 1.1, 0.22), sofaMat, -1.2, 1.15, -3.08, g);
+            roomBlock(new THREE.BoxGeometry(1.05, 0.7, 0.18), cushionMat, -2.1, 1.15, -2.92, g);
+            roomBlock(new THREE.BoxGeometry(1.05, 0.7, 0.18), cushionMat, -1.0, 1.15, -2.92, g);
+            roomBlock(new THREE.BoxGeometry(1.05, 0.7, 0.18), cushionMat, 0.1, 1.15, -2.92, g);
+            roomBlock(new THREE.BoxGeometry(0.22, 0.55, 1.2), sofaMat, -2.9, 0.75, -2.5, g);
+            roomBlock(new THREE.BoxGeometry(0.26, 0.12, 1.25), sofaMat, -2.9, 1.06, -2.5, g);
+            roomBlock(new THREE.BoxGeometry(0.22, 0.55, 1.2), sofaMat, 0.5, 0.75, -2.5, g);
+            roomBlock(new THREE.BoxGeometry(0.26, 0.12, 1.25), sofaMat, 0.5, 1.06, -2.5, g);
+            roomBlockR(new THREE.BoxGeometry(0.4, 0.38, 0.12), cushionAccentMat, 0.3, 0.95, -2.85, 0, 0, 0.15, g);
+            roomBlockR(new THREE.BoxGeometry(0.35, 0.35, 0.1), cushionMat, -2.6, 0.95, -2.88, 0, 0, -0.1, g);
+            return [sofaMat, sofaDarkMat, cushionMat, cushionAccentMat, chairFrameMat];
+        });
+
+        // ---- PIECE 4: Coffee Table ----
+        createFurniturePiece((g) => {
+            roomBlock(new THREE.BoxGeometry(1.8, 0.06, 1.0), tableMat, 0.5, 0.62, 0, g);
+            roomBlock(new THREE.BoxGeometry(1.84, 0.02, 1.04), chairFrameMat, 0.5, 0.59, 0, g);
+            roomBlockR(new THREE.BoxGeometry(0.05, 0.65, 0.04), chairFrameMat, -0.1, 0.3, 0, 0, 0, 0.15, g);
+            roomBlockR(new THREE.BoxGeometry(0.05, 0.65, 0.04), chairFrameMat, -0.1, 0.3, 0, 0, 0, -0.15, g);
+            roomBlockR(new THREE.BoxGeometry(0.05, 0.65, 0.04), chairFrameMat, 1.1, 0.3, 0, 0, 0, 0.15, g);
+            roomBlockR(new THREE.BoxGeometry(0.05, 0.65, 0.04), chairFrameMat, 1.1, 0.3, 0, 0, 0, -0.15, g);
+            roomBlock(new THREE.BoxGeometry(1.5, 0.04, 0.04), chairFrameMat, 0.5, 0.2, 0, g);
+            roomBlock(new THREE.CylinderGeometry(0.14, 0.12, 0.18, 14), metalAccentMat, 0.3, 0.72, -0.1, g);
+            roomBlock(new THREE.CylinderGeometry(0.05, 0.04, 0.08, 10), metalAccentMat, 0.55, 0.66, 0.15, g);
+            roomBlock(new THREE.BoxGeometry(0.22, 0.04, 0.15), artMats[2], 0.9, 0.64, 0.1, g);
+            return [tableMat, chairFrameMat, metalAccentMat, artMats[2]];
+        });
+
+        // Chair builder helper
+        function buildAccentChair(g, cx, cz) {
+            roomBlock(new THREE.BoxGeometry(0.9, 0.12, 0.9), chairMat, cx, 0.58, cz, g);
+            roomBlock(new THREE.BoxGeometry(0.95, 0.06, 0.95), chairFrameMat, cx, 0.51, cz, g);
+            roomBlockR(new THREE.BoxGeometry(0.9, 0.7, 0.06), chairMat, cx, 1.02, cz + 0.42, 0.08, 0, 0, g);
+            roomBlock(new THREE.BoxGeometry(0.95, 0.75, 0.04), chairFrameMat, cx, 1.0, cz + 0.45, g);
+            roomBlock(new THREE.BoxGeometry(0.04, 0.45, 0.85), chairFrameMat, cx - 0.47, 0.78, cz, g);
+            roomBlock(new THREE.BoxGeometry(0.04, 0.45, 0.85), chairFrameMat, cx + 0.47, 0.78, cz, g);
+            const clGeo = new THREE.CylinderGeometry(0.025, 0.035, 0.48, 8);
+            roomBlock(clGeo, chairFrameMat, cx - 0.4, 0.24, cz - 0.35, g);
+            roomBlock(clGeo, chairFrameMat, cx + 0.4, 0.24, cz - 0.35, g);
+            roomBlock(clGeo, chairFrameMat, cx - 0.4, 0.24, cz + 0.35, g);
+            roomBlock(clGeo, chairFrameMat, cx + 0.4, 0.24, cz + 0.35, g);
+            roomBlockR(new THREE.BoxGeometry(0.3, 0.25, 0.08), cushionAccentMat, cx + 0.15, 0.78, cz + 0.3, 0.2, 0, 0, g);
+        }
+
+        // ---- PIECE 5: Accent Chair Left ----
+        createFurniturePiece((g) => {
+            buildAccentChair(g, -0.5, 1.5);
+            return [chairMat, chairFrameMat, cushionAccentMat];
+        });
+
+        // ---- PIECE 6: Accent Chair Right ----
+        createFurniturePiece((g) => {
+            buildAccentChair(g, 1.5, 1.5);
+            return [chairMat, chairFrameMat, cushionAccentMat];
+        });
+
+        // ---- PIECE 7: Floor Lamp ----
+        createFurniturePiece((g) => {
+            roomBlockR(new THREE.CylinderGeometry(0.02, 0.03, 2.1, 6), lampBaseMat, -3.55, 1.05, -1.35, 0, 0, 0.12, g);
+            roomBlockR(new THREE.CylinderGeometry(0.02, 0.03, 2.1, 6), lampBaseMat, -3.2, 1.05, -1.7, 0, -1.0, -0.12, g);
+            roomBlockR(new THREE.CylinderGeometry(0.02, 0.03, 2.1, 6), lampBaseMat, -3.2, 1.05, -1.2, 0, 1.0, -0.12, g);
+            roomBlock(new THREE.CylinderGeometry(0.015, 0.015, 0.5, 6), lampBaseMat, -3.35, 2.3, -1.45, g);
+            roomBlock(new THREE.CylinderGeometry(0.3, 0.4, 0.55, 20), lampShadeMat, -3.35, 2.7, -1.45, g);
+            roomBlock(new THREE.TorusGeometry(0.3, 0.015, 6, 20), metalAccentMat, -3.35, 2.97, -1.45, g);
+            roomBlock(new THREE.TorusGeometry(0.4, 0.015, 6, 20), metalAccentMat, -3.35, 2.43, -1.45, g);
+            return [lampBaseMat, lampShadeMat, metalAccentMat];
+        });
+
+        // ---- PIECE 8: TV Console + TV (pulled forward from wall) ----
+        createFurniturePiece((g) => {
+            roomBlock(new THREE.BoxGeometry(2.8, 0.55, 0.45), tvConsoleMat, 3.2, 0.35, -3.35, g);
+            roomBlock(new THREE.BoxGeometry(2.85, 0.04, 0.5), tableMat, 3.2, 0.63, -3.35, g);
+            for (let d = 0; d < 3; d++) {
+                const dx = 2.25 + d * 0.95;
+                roomBlock(new THREE.BoxGeometry(0.85, 0.22, 0.02), tvConsoleMat, dx, 0.45, -3.11, g);
+                roomBlock(new THREE.BoxGeometry(0.25, 0.02, 0.04), metalAccentMat, dx, 0.45, -3.09, g);
+            }
+            roomBlock(new THREE.BoxGeometry(2.6, 0.03, 0.38), tvConsoleMat, 3.2, 0.12, -3.35, g);
+            roomBlock(new THREE.BoxGeometry(2.2, 1.25, 0.04), tvScreenMat, 3.2, 1.5, -3.65, g);
+            roomBlock(new THREE.BoxGeometry(2.28, 1.33, 0.02), tvBodyMat, 3.2, 1.5, -3.67, g);
+            roomBlock(new THREE.BoxGeometry(0.06, 0.2, 0.06), metalAccentMat, 3.2, 0.78, -3.55, g);
+            roomBlock(new THREE.BoxGeometry(0.55, 0.03, 0.2), metalAccentMat, 3.2, 0.66, -3.50, g);
+            return [tvConsoleMat, tableMat, tvScreenMat, tvBodyMat, metalAccentMat];
+        });
+
+        // ---- PIECE 9: Wall Art (2 pieces with gap) ----
+        createFurniturePiece((g) => {
+            // Left art piece
+            roomBlock(new THREE.BoxGeometry(1.08, 1.38, 0.05), artFrameMat, -2.8, 2.8, -3.78, g);
+            roomBlock(new THREE.BoxGeometry(0.92, 1.2, 0.04), cushionMat, -2.8, 2.8, -3.755, g);
+            roomBlock(new THREE.BoxGeometry(0.82, 1.1, 0.06), artMats[0], -2.8, 2.8, -3.73, g);
+            // Right art piece (gap of ~1 panel width between)
+            roomBlock(new THREE.BoxGeometry(1.08, 1.38, 0.05), artFrameMat, -0.2, 2.8, -3.78, g);
+            roomBlock(new THREE.BoxGeometry(0.92, 1.2, 0.04), cushionMat, -0.2, 2.8, -3.755, g);
+            roomBlock(new THREE.BoxGeometry(0.82, 1.1, 0.06), artMats[2], -0.2, 2.8, -3.73, g);
+            return [artFrameMat, artMats[0], artMats[2], cushionMat];
+        });
+
+        // ---- PIECE 10: Plant ----
+        createFurniturePiece((g) => {
+            roomBlock(new THREE.CylinderGeometry(0.28, 0.2, 0.4, 14), plantPotMat, -3.8, 0.28, 2.5, g);
+            roomBlock(new THREE.CylinderGeometry(0.3, 0.3, 0.06, 14), plantPotMat, -3.8, 0.5, 2.5, g);
+            roomBlock(new THREE.CylinderGeometry(0.26, 0.26, 0.04, 14), sofaDarkMat, -3.8, 0.48, 2.5, g);
+            [[0, 0], [0.08, 0.06], [-0.06, -0.04], [0.04, -0.08]].forEach(([sx, sz]) => {
+                roomBlock(new THREE.CylinderGeometry(0.015, 0.02, 0.5 + Math.random() * 0.4, 5), plantLeafDarkMat,
+                    -3.8 + sx, 0.75, 2.5 + sz, g);
+            });
+            const leafGeo = new THREE.BoxGeometry(0.18, 0.015, 0.45);
+            for (let l = 0; l < 16; l++) {
+                const angle = (l / 16) * Math.PI * 2, r = 0.15 + Math.random() * 0.12;
+                const h = 0.75 + Math.random() * 0.5, tilt = 0.3 + Math.random() * 0.5;
+                const leaf = roomBlock(leafGeo, l % 3 === 0 ? plantLeafDarkMat : plantLeafMat,
+                    -3.8 + Math.cos(angle) * r, 0.5 + h, 2.5 + Math.sin(angle) * r, g);
+                leaf.rotation.set(tilt, angle, 0);
+            }
+            return [plantPotMat, plantLeafMat, plantLeafDarkMat, sofaDarkMat];
+        });
+
+        // ---- PIECE 11: Decorative items ----
+        createFurniturePiece((g) => {
+            roomBlock(new THREE.CylinderGeometry(0.06, 0.1, 0.3, 12), plantPotMat, 4.3, 0.8, -3.5, g);
+            roomBlock(new THREE.BoxGeometry(0.25, 0.05, 0.18), artMats[0], 2.2, 0.68, -3.5, g);
+            roomBlock(new THREE.BoxGeometry(0.22, 0.04, 0.18), artMats[3], 2.22, 0.73, -3.5, g);
+            roomBlock(new THREE.BoxGeometry(0.24, 0.04, 0.17), cushionAccentMat, 2.21, 0.78, -3.5, g);
+            roomBlock(new THREE.CylinderGeometry(0.32, 0.32, 0.22, 16), cushionAccentMat, 2.5, 0.19, 2.6, g);
+            roomBlock(new THREE.CylinderGeometry(0.28, 0.28, 0.06, 16), cushionMat, 2.5, 0.31, 2.6, g);
+            roomBlock(new THREE.CylinderGeometry(0.25, 0.25, 0.03, 14), metalAccentMat, 0.5, 0.52, 2.6, g);
+            roomBlock(new THREE.CylinderGeometry(0.04, 0.04, 0.5, 8), metalAccentMat, 0.5, 0.26, 2.6, g);
+            roomBlock(new THREE.CylinderGeometry(0.15, 0.15, 0.02, 10), metalAccentMat, 0.5, 0.02, 2.6, g);
+            roomBlock(new THREE.CylinderGeometry(0.06, 0.05, 0.1, 8), plantPotMat, 0.5, 0.57, 2.6, g);
+            roomBlock(new THREE.SphereGeometry(0.1, 8, 8), plantLeafMat, 0.5, 0.68, 2.6, g);
+            return [plantPotMat, artMats[0], artMats[3], cushionAccentMat, cushionMat, metalAccentMat, plantLeafMat];
+        });
+
+        // ---- PIECE 12: Architectural Sketch Lines (floor plan around the room) ----
+        createFurniturePiece((g) => {
+            const sketchColor = 0x2a2825;
+            const sketchLight = 0x8a8580;
+            const sketchAccent = 0xd17030;
+            const Y = 0.05; // Floor level for plan lines
+
+            // Helper: draw a line from [x1,y1,z1] to [x2,y2,z2]
+            function sketchLine(pts, color, lw, parent) {
+                const geo = new THREE.BufferGeometry().setFromPoints(
+                    pts.map(p => new THREE.Vector3(p[0], p[1], p[2]))
+                );
+                const mat = new THREE.LineBasicMaterial({ color: color || sketchColor, transparent: true, opacity: 0, linewidth: lw || 1 });
+                const line = new THREE.Line(geo, mat);
+                parent.add(line);
+                return mat;
+            }
+            // Helper: draw a closed rectangle at floor level
+            function sketchRect(x, z, w, d, color, parent) {
+                return sketchLine([
+                    [x, Y, z], [x + w, Y, z], [x + w, Y, z + d], [x, Y, z + d], [x, Y, z]
+                ], color, 1, parent);
+            }
+
+            const lineMats = [];
+            function sl(pts, c) { lineMats.push(sketchLine(pts, c, 1, g)); }
+            function sr(x, z, w, d, c) { lineMats.push(sketchRect(x, z, w, d, c, g)); }
+
+            // === RIGHT SIDE: Adjacent rooms / corridor ===
+            // Corridor wall outline (right of room, x=5 to x=14)
+            sr(5, -5, 9, 14, sketchColor);
+            // Inner corridor wall (parallel)
+            sl([[5, Y, -5], [14, Y, -5]], sketchColor);
+            sl([[14, Y, -5], [14, Y, 9]], sketchColor);
+            // Corridor subdivision — bedroom to the right
+            sr(6, -5, 7, 6, sketchColor);
+            // Bathroom behind corridor
+            sr(6, 1.5, 4, 4, sketchColor);
+            // Another room top-right
+            sr(10.5, 1.5, 3.5, 4, sketchColor);
+
+            // Doorway openings (gaps in wall lines)
+            sl([[5, Y, -1.5], [5, Y, 0.5]], sketchLight);  // Room door opening
+            sl([[6, Y, -2], [6, Y, -0.5]], sketchLight);    // Bedroom door
+            sl([[6, Y, 2.5], [6, Y, 3.5]], sketchLight);    // Bathroom door
+
+            // Bedroom furniture sketches (top-right room)
+            // Bed outline
+            sr(7.5, -4, 4, 2.2, sketchLight);
+            // Bed headboard
+            sl([[7.5, Y, -4], [11.5, Y, -4]], sketchColor);
+            // Pillows
+            sr(8, -3.8, 1.2, 0.5, sketchLight);
+            sr(10, -3.8, 1.2, 0.5, sketchLight);
+            // Nightstand
+            sr(7, -4.2, 0.5, 0.5, sketchLight);
+            sr(11.5, -4.2, 0.5, 0.5, sketchLight);
+            // Wardrobe/closet outline
+            sr(12.5, -4.5, 1.2, 3, sketchLight);
+
+            // Bathroom fixtures (mid-right)
+            // Bathtub outline
+            sr(6.5, 2, 1.5, 3, sketchLight);
+            // Inner tub
+            sr(6.7, 2.2, 1.1, 2.6, sketchLight);
+            // Sink
+            sr(8.5, 2, 0.8, 0.5, sketchLight);
+            // Toilet
+            sr(8.5, 4, 0.5, 0.7, sketchLight);
+
+            // Desk in far right room
+            sr(11, 2.5, 2.5, 0.7, sketchLight);
+            // Chair (circle approximation)
+            sl([
+                [12, Y, 3.8], [12.3, Y, 4], [12.3, Y, 4.4],
+                [12, Y, 4.6], [11.7, Y, 4.4], [11.7, Y, 4], [12, Y, 3.8]
+            ], sketchLight);
+
+            // === FRONT SIDE: Hallway / living area ===
+            sr(-6, 4.5, 18, 6, sketchColor);
+            // Inner partition
+            sl([[-6, Y, 7], [0, Y, 7]], sketchColor);
+            sl([[3, Y, 7], [12, Y, 7]], sketchColor);
+            // Dining table outline (front-left)
+            sr(-4.5, 5, 3, 1.8, sketchLight);
+            // Chairs around table
+            sr(-4.2, 4.5, 0.5, 0.5, sketchLight);
+            sr(-2.2, 4.5, 0.5, 0.5, sketchLight);
+            sr(-4.2, 6.8, 0.5, 0.5, sketchLight);
+            sr(-2.2, 6.8, 0.5, 0.5, sketchLight);
+
+            // Kitchen counter (front-right)
+            sr(4, 7.5, 6, 0.7, sketchLight);
+            sl([[4, Y, 8.2], [10, Y, 8.2]], sketchLight);
+            // Sink in kitchen
+            sr(6, 7.6, 1, 0.5, sketchLight);
+            // Stove
+            sr(8, 7.6, 1, 0.5, sketchLight);
+            sr(8.2, 7.7, 0.3, 0.3, sketchLight);
+            sr(8.5, 7.7, 0.3, 0.3, sketchLight);
+
+            // === LEFT SIDE: Extended sketch ===
+            sr(-12, -5, 7, 14, sketchColor);
+            // Inner rooms on left
+            sr(-12, -5, 7, 7, sketchColor);
+            sr(-12, 2, 7, 7, sketchColor);
+            // Staircase (left-back)
+            for (let s = 0; s < 6; s++) {
+                sl([[-11.5, Y, -4.5 + s * 0.9], [-7, Y, -4.5 + s * 0.9]], sketchLight);
+            }
+            // Storage/utility outline
+            sr(-11, 3, 4, 3, sketchLight);
+
+            // === BACK SIDE: Behind room ===
+            sr(-6, -10, 20, 6, sketchColor);
+            // Internal partitions
+            sl([[-2, Y, -10], [-2, Y, -4.5]], sketchColor);
+            sl([[5, Y, -10], [5, Y, -5]], sketchColor);
+            sl([[10, Y, -10], [10, Y, -5]], sketchColor);
+
+            // === DIMENSION / ANNOTATION LINES ===
+            // Room width dimension (bottom)
+            sl([[-5, Y, 5.5], [5, Y, 5.5]], sketchAccent);
+            // Tick marks
+            sl([[-5, Y, 5.3], [-5, Y, 5.7]], sketchAccent);
+            sl([[5, Y, 5.3], [5, Y, 5.7]], sketchAccent);
+            sl([[0, Y, 5.3], [0, Y, 5.7]], sketchAccent); // center tick
+
+            // Room depth dimension (right side)
+            sl([[6.5, Y, -4], [6.5, Y, 4]], sketchAccent);
+            sl([[6.3, Y, -4], [6.7, Y, -4]], sketchAccent);
+            sl([[6.3, Y, 4], [6.7, Y, 4]], sketchAccent);
+
+            // Diagonal sight line (architectural)
+            sl([[5.5, Y, 5], [14, Y, 10]], sketchAccent);
+            sl([[-6, Y, -5], [-12, Y, -10]], sketchAccent);
+
+            // Cross-hair at room center
+            sl([[-0.3, Y, 0], [0.3, Y, 0]], sketchAccent);
+            sl([[0, Y, -0.3], [0, Y, 0.3]], sketchAccent);
+
+            // === VERTICAL SKETCH LINES (walls, doors, windows on all sides) ===
+            const WH = 4.5; // wall height
+
+            // --- RIGHT SIDE vertical walls ---
+            // Right corridor outer wall (x=14)
+            sl([[14, Y, -5], [14, WH, -5]], sketchColor);
+            sl([[14, Y, 9], [14, WH, 9]], sketchColor);
+            sl([[14, WH, -5], [14, WH, 9]], sketchColor);
+            // Right corridor back wall verticals (z=-5)
+            sl([[5, Y, -5], [5, WH, -5]], sketchColor);
+            sl([[5, WH, -5], [14, WH, -5]], sketchColor);
+            // Bedroom interior wall (x=6)
+            sl([[6, Y, -5], [6, WH, -5]], sketchLight);
+            sl([[6, Y, 1], [6, WH, 1]], sketchLight);
+            sl([[6, WH, -5], [6, WH, 1]], sketchLight);
+            // Door opening on right wall (x=5, gap from z=-1.5 to z=0.5)
+            sl([[5, Y, -4], [5, WH, -4]], sketchColor);
+            sl([[5, Y, 4], [5, WH, 4]], sketchColor);
+            sl([[5, WH, -4], [5, WH, -1.5]], sketchColor);
+            sl([[5, WH, 0.5], [5, WH, 4]], sketchColor);
+            // Door frame sketch
+            sl([[5, Y, -1.5], [5, 3.2, -1.5]], sketchColor);
+            sl([[5, Y, 0.5], [5, 3.2, 0.5]], sketchColor);
+            sl([[5, 3.2, -1.5], [5, 3.2, 0.5]], sketchColor);
+            // Room divider wall at x=6 with door
+            sl([[6, Y, -0.5], [6, 3, -0.5]], sketchLight);
+            sl([[6, Y, -2], [6, 3, -2]], sketchLight);
+            sl([[6, 3, -2], [6, 3, -0.5]], sketchLight);
+            // Bedroom window (on far wall z=-5)
+            sl([[8, 1, -5], [8, 3, -5]], sketchLight);
+            sl([[10.5, 1, -5], [10.5, 3, -5]], sketchLight);
+            sl([[8, 1, -5], [10.5, 1, -5]], sketchLight);
+            sl([[8, 3, -5], [10.5, 3, -5]], sketchLight);
+            sl([[9.25, 1, -5], [9.25, 3, -5]], sketchLight); // mullion
+
+            // --- FRONT SIDE verticals ---
+            sl([[-6, Y, 10.5], [-6, WH, 10.5]], sketchColor);
+            sl([[12, Y, 10.5], [12, WH, 10.5]], sketchColor);
+            sl([[-6, WH, 10.5], [12, WH, 10.5]], sketchColor);
+            // Front partition wall
+            sl([[-6, Y, 7], [-6, 1.5, 7]], sketchColor);
+            sl([[0, Y, 7], [0, 1.5, 7]], sketchColor);
+            sl([[-6, 1.5, 7], [0, 1.5, 7]], sketchColor);
+            // Front wall window openings
+            sl([[4, 1, 10.5], [4, 3.5, 10.5]], sketchLight);
+            sl([[7, 1, 10.5], [7, 3.5, 10.5]], sketchLight);
+            sl([[4, 1, 10.5], [7, 1, 10.5]], sketchLight);
+            sl([[4, 3.5, 10.5], [7, 3.5, 10.5]], sketchLight);
+            sl([[5.5, 1, 10.5], [5.5, 3.5, 10.5]], sketchLight);
+
+            // --- LEFT SIDE verticals ---
+            sl([[-12, Y, -5], [-12, WH, -5]], sketchColor);
+            sl([[-12, Y, 9], [-12, WH, 9]], sketchColor);
+            sl([[-12, WH, -5], [-12, WH, 9]], sketchColor);
+            // Left interior partition
+            sl([[-12, Y, 2], [-12, WH, 2]], sketchColor);
+            sl([[-5, Y, 2], [-5, WH, 2]], sketchLight);
+            // Left wall (x=-5) extends beyond room — door/window
+            sl([[-5, Y, -5], [-5, WH, -5]], sketchColor);
+            sl([[-5, Y, 4.5], [-5, WH, 4.5]], sketchColor);
+            sl([[-5, WH, -5], [-5, WH, -4]], sketchColor); // top segment
+            sl([[-5, WH, 4], [-5, WH, 4.5]], sketchColor);
+            // Staircase wall verticals
+            sl([[-7, Y, -5], [-7, WH, -5]], sketchLight);
+            sl([[-7, Y, 2], [-7, WH, 2]], sketchLight);
+            sl([[-7, WH, -5], [-7, WH, 2]], sketchLight);
+            // Staircase railing sketch
+            sl([[-11.5, Y, -4.5], [-11.5, 1.2, -4.5]], sketchLight);
+            sl([[-7, Y, -4.5], [-7, 1.2, -4.5]], sketchLight);
+            sl([[-11.5, 1.2, -4.5], [-7, 1.2, -4.5]], sketchLight);
+
+            // --- BACK SIDE verticals ---
+            sl([[-6, Y, -10], [-6, WH, -10]], sketchColor);
+            sl([[14, Y, -10], [14, WH, -10]], sketchColor);
+            sl([[-6, WH, -10], [14, WH, -10]], sketchColor);
+            // Partition verticals
+            sl([[-2, Y, -10], [-2, WH, -10]], sketchColor);
+            sl([[5, Y, -10], [5, WH, -10]], sketchColor);
+            sl([[10, Y, -10], [10, WH, -10]], sketchColor);
+            // Back room window
+            sl([[0, 1, -10], [0, 3, -10]], sketchLight);
+            sl([[3, 1, -10], [3, 3, -10]], sketchLight);
+            sl([[0, 1, -10], [3, 1, -10]], sketchLight);
+            sl([[0, 3, -10], [3, 3, -10]], sketchLight);
+
+            // === SUBTLE GRID (covers entire plan area) ===
+            const gridColor = 0xc5c0b8;
+            for (let gx = -12; gx <= 14; gx += 2) {
+                lineMats.push(sketchLine([[gx, Y - 0.02, -10], [gx, Y - 0.02, 11]], gridColor, 1, g));
+            }
+            for (let gz = -10; gz <= 11; gz += 2) {
+                lineMats.push(sketchLine([[-12, Y - 0.02, gz], [14, Y - 0.02, gz]], gridColor, 1, g));
+            }
+
+            return lineMats;
+        });
+
+
+        /* ==========================================
+           8. COMPUTE MAX DISTANCE
+           ========================================== */
+        let globalMaxDist = 0;
+        allEdgeObjects.forEach(o => {
+            for (let i = 0; i < o.distArr.length; i++) {
+                if (o.distArr[i] > globalMaxDist) globalMaxDist = o.distArr[i];
+            }
+        });
+        sketchLineMat.uniforms.uMaxDist.value = globalMaxDist;
+        annoLineMat.uniforms.uMaxDist.value = globalMaxDist;
+
+        /* ==========================================
+           9. CAMERA & SCROLL ANIMATIONS
+           ========================================== */
+        const camTarget = new THREE.Vector3(0, 7, 0);
+        camera.position.set(22, 20, 26);
+        camera.lookAt(camTarget);
+
+        // --- ON LOAD: SKETCH DRAWING ---
+        window.addEventListener('load', () => {
+            const tl = gsap.timeline();
+
+            tl.to(".loader-bar-fill", { width: "100%", duration: 0.7, ease: "power2.out" })
+                .to("#loader", {
+                    opacity: 0, duration: 0.35,
+                    onComplete: () => document.getElementById('loader').style.display = 'none'
+                })
+                .to(gridHelper.material, { opacity: 0.4, duration: 1.0, ease: "power2.out" }, "-=0.1")
+                .to(sketchLineMat.uniforms.uProgress, { value: 1.0, duration: 3.5, ease: "power2.inOut" }, "-=0.6")
+                .to(annoLineMat.uniforms.uProgress, { value: 1.0, duration: 3.5, ease: "power2.inOut" }, "<0.4")
+                .to(".intro-block", { opacity: 1, y: 0, duration: 1.5, ease: "power3.out" }, "-=1.0");
+        });
+
+
+
+        // --- SCROLL ANIMATION (6 sections → 5 steps) ---
+        const sTl = gsap.timeline({
+            scrollTrigger: {
+                trigger: ".scroll-container",
+                start: "top top", end: "bottom bottom", scrub: true
+            }
+        });
+
+        // STEP 1: Sketch → Photorealistic morph
+        sTl.to(camera.position, { x: -12, y: 14, z: 20, ease: "power1.inOut" }, "s1")
+            .to(camTarget, { x: 0, y: 8, z: 0, ease: "power1.inOut" }, "s1");
+
+        allClayMats.forEach(mat => {
+            sTl.to(mat, { opacity: 1, duration: 0.5, ease: "power2.in" }, "s1");
+        });
+        sTl.to(glassGlowMat, { emissiveIntensity: 0.8, duration: 0.5 }, "s1");
+        sTl.to(sunLight, { intensity: 3.5, duration: 0.5 }, "s1")
+            .to(rimLight, { intensity: 1.0, duration: 0.5 }, "s1")
+            .to(interiorGlow, { intensity: 2.5, duration: 0.5 }, "s1")
+            .to(fillLight, { intensity: 1.5, duration: 0.5 }, "s1");
+        sTl.to(sketchLineMat.uniforms.uOpacity, { value: 0, duration: 0.5 }, "s1")
+            .to(annoLineMat.uniforms.uOpacity, { value: 0, duration: 0.5 }, "s1")
+            .to(gridHelper.material, { opacity: 0, duration: 0.5 }, "s1");
+
+        // STEP 2: Orbit to close-up of building facade — see glass & warm glow
+        sTl.to(camera.position, { x: 4, y: 8, z: 10, ease: "power1.inOut" }, "s2")
+            .to(camTarget, { x: 0, y: 7, z: 0, ease: "power1.inOut" }, "s2");
+
+        // Sync 3D Text Reveal with Building Orbit
+        sTl.fromTo(text3d,
+            { rotationY: -110, rotationX: 15, x: -600, opacity: 0 },
+            { rotationY: 0, rotationX: 0, x: 0, opacity: 1, ease: "power2.out" },
+            "s2"
+        );
+
+        // STEP 3: SMOOTH CROSS-FADE — Camera glides into room while exterior dissolves
+        // Use a proxy to drive the cross-fade via the scrub timeline (no jarring ScrollTrigger)
+        const crossFade = { progress: 0 };
+        const exteriorMeshes = [];
+        buildingGroup.traverse(c => { if (c.isMesh) exteriorMeshes.push(c); });
+        cityGroup.traverse(c => { if (c.isMesh) exteriorMeshes.push(c); });
+        exteriorMeshes.push(ground);
+
+        // Camera smoothly transitions from building exterior into room isometric view
+        sTl.to(camera.position, { x: 8, y: ROOM_Y + 5, z: 8, ease: "power2.inOut" }, "s3")
+            .to(camTarget, { x: -1, y: ROOM_Y + 1.5, z: -1, ease: "power2.inOut" }, "s3");
+
+        // Animate the cross-fade proxy from 0 → 1 over the step 3 duration
+        sTl.to(crossFade, {
+            progress: 1,
+            duration: 0.5,
+            ease: "power2.inOut",
+            onUpdate: () => {
+                const p = crossFade.progress;
+                // Fade exterior out
+                const extOpacity = Math.max(0, 1 - p * 2.5); // Fully gone by p=0.4
+                exteriorMeshes.forEach(m => {
+                    if (m.material) {
+                        m.material.transparent = true;
+                        m.material.opacity = extOpacity;
+                    }
+                });
+                // Hide groups once fully transparent (avoids edge artifacts)
+                if (p > 0.45) {
+                    buildingGroup.visible = false;
+                    cityGroup.visible = false;
+                    ground.visible = false;
+                    scene.fog = null;
+                } else {
+                    buildingGroup.visible = true;
+                    cityGroup.visible = true;
+                    ground.visible = true;
+                    scene.fog = new THREE.Fog(bgColor, 30, 120);
+                    // Restore exterior material opacity when scrolling back
+                    exteriorMeshes.forEach(m => {
+                        if (m.material) m.material.opacity = extOpacity;
+                    });
+                }
+            }
+        }, "s3");
+
+        // Dim exterior lights smoothly
+        sTl.to(sunLight, { intensity: 0.3, duration: 0.5 }, "s3")
+            .to(rimLight, { intensity: 0.1, duration: 0.5 }, "s3")
+            .to(interiorGlow, { intensity: 0, duration: 0.5 }, "s3")
+            .to(fillLight, { intensity: 0, duration: 0.5 }, "s3");
+
+        // Reveal room shell smoothly (cross-dissolve with exterior)
+        sTl.to(furniturePieces[0].group.scale, { x: 1, y: 1, z: 1, duration: 0.5, ease: "power2.out" }, "s3")
+            .to(furniturePieces[1].group.scale, { x: 1, y: 1, z: 1, duration: 0.4, ease: "power2.out" }, ">-0.2");
+        furniturePieces[0].mats.forEach(m => sTl.to(m, { opacity: 1, duration: 0.5 }, "s3"));
+        furniturePieces[1].mats.forEach(m => sTl.to(m, { opacity: 1, duration: 0.4 }, "s3"));
+        // Window emissive glow
+        sTl.to(windowGlowMat, { emissiveIntensity: 1.5, duration: 0.4 }, "s3");
+        // Room lights on (ramp up smoothly)
+        sTl.to(roomLight, { intensity: 6.0, duration: 0.5 }, "s3")
+            .to(roomAmbient, { intensity: 4.0, duration: 0.5 }, "s3")
+            .to(windowLight, { intensity: 4.0, duration: 0.5 }, "s3");
+        sTl.to(hemiLight, { intensity: 1.2, duration: 0.5 }, "s3");
+        // Reveal sketch lines (PIECE 12) alongside room shell
+        sTl.to(furniturePieces[12].group.scale, { x: 1, y: 1, z: 1, duration: 0.5, ease: "power2.out" }, "s3");
+        furniturePieces[12].mats.forEach(m => sTl.to(m, { opacity: 0.6, duration: 0.5 }, "s3"));
+
+        // STEP 4: FURNISH THE ROOM — isometric view from front-right, pieces pop in
+        // Camera at front-right looking into back-left corner (open L-shape view)
+        sTl.to(camera.position, { x: 10, y: ROOM_Y + 7, z: 9, ease: "power1.inOut" }, "s4")
+            .to(camTarget, { x: -1.5, y: ROOM_Y + 1.2, z: -1, ease: "power1.inOut" }, "s4");
+
+        // Stagger each furniture piece with a pop-in animation
+        for (let i = 2; i < furniturePieces.length; i++) {
+            const piece = furniturePieces[i];
+            sTl.to(piece.group.scale, {
+                x: 1, y: 1, z: 1,
+                duration: 0.25,
+                ease: "back.out(1.7)"
+            }, i === 2 ? "s4" : ">-0.06");
+            piece.mats.forEach(m => {
+                sTl.to(m, { opacity: 1, duration: 0.18 }, "<");
+            });
+        }
+
+        // Lamp glow ON after it appears
+        sTl.to(lampShadeMat, { emissiveIntensity: 1.0, duration: 0.2 }, ">-0.05");
+        sTl.to(lampSpot, { intensity: 3.0, duration: 0.2 }, "<");
+        sTl.to(bounceFill, { intensity: 1.5, duration: 0.2 }, "<");
+
+        // STEP 5: Final CTA — slight pull back
+        sTl.to(camera.position, { x: 12, y: ROOM_Y + 9, z: 11, ease: "power2.inOut" }, "s5")
+            .to(camTarget, { x: -1, y: ROOM_Y + 1, z: -0.5, ease: "power2.inOut" }, "s5");
+
+
+
+
+        /* ==========================================
+           10. RENDER LOOP
+           ========================================== */
+        function animate() {
+            camera.lookAt(camTarget);
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        ScrollTrigger.refresh();
+    </script>
+</body>
+
+</html>
