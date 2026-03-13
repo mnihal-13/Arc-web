@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CREO | Photorealistic Architecture</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: #e4e4e6; 
+            color: #111;
+            font-family: 'Syne', sans-serif;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        #webgl-canvas {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 0; pointer-events: none; 
+        }
+
+        .scroll-container { position: relative; z-index: 10; }
+
+        nav {
+            position: fixed; top: 0; left: 0; width: 100%;
+            padding: 2rem 4rem; display: flex; justify-content: space-between; align-items: center;
+            z-index: 100; mix-blend-mode: difference; color: white;
+        }
+        .logo { font-size: 2rem; font-weight: 800; text-decoration: none; color: inherit; letter-spacing: -1px;}
+        .nav-links { display: flex; gap: 3rem; list-style: none; font-weight: 600;}
+
+        .section {
+            height: 100vh; width: 100vw;
+            display: flex; align-items: center;
+            padding: 0 10vw; position: relative;
+        }
+
+        .content-block {
+            max-width: 550px;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 3.5rem; border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.6);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.05);
+            opacity: 0; transform: translateY(30px);
+        }
+
+        h1, h2 { font-size: 3.5rem; font-weight: 800; line-height: 1.05; margin-bottom: 1.5rem; letter-spacing: -1px; }
+        p { font-size: 1.15rem; color: #444; line-height: 1.6; margin-bottom: 2.5rem; }
+        
+        .btn {
+            display: inline-block; padding: 1.2rem 2.5rem;
+            background: #111; color: #fff;
+            text-decoration: none; border-radius: 50px;
+            font-weight: 600; letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+        .btn:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); }
+
+        .align-right { justify-content: flex-end; }
+        .align-left { justify-content: flex-start; }
+        .align-center { justify-content: center; text-align: center; }
+
+        #loader {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #e4e4e6; z-index: 999;
+            display: flex; justify-content: center; align-items: center;
+            font-weight: 800; font-size: 2rem; color: #111; letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader">RENDERING TEXTURES...</div>
+
+    <canvas id="webgl-canvas"></canvas>
+
+    <nav>
+        <a href="#" class="logo">CREO</a>
+        <ul class="nav-links">
+            <li>Vision</li>
+            <li>Engineering</li>
+            <li>Construct</li>
+        </ul>
+    </nav>
+
+    <div class="scroll-container">
+        <div class="section align-left" id="sec1">
+            <div class="content-block intro-block">
+                <h1>Blueprint<br>to Reality</h1>
+                <p>We translate rigorous architectural drafting into high-fidelity structures using premium materials.</p>
+                <a href="#" class="btn">Initiate Project</a>
+            </div>
+        </div>
+
+        <div class="section align-right" id="sec2">
+            <div class="content-block">
+                <h2>Tactile Materials</h2>
+                <p>Observe the physical texture. Photorealistic concrete, structural timber, and volumetric glass engineered with microscopic precision.</p>
+            </div>
+        </div>
+
+        <div class="section align-left" id="sec3">
+            <div class="content-block">
+                <h2>Structural Depth</h2>
+                <p>Light interacts with our spaces naturally. Real-time shadows map across authentic material surfaces.</p>
+            </div>
+        </div>
+
+        <div class="section align-center" id="sec4">
+            <div class="content-block" style="margin-top: -20vh;">
+                <h2>Build With Us</h2>
+                <a href="#" class="btn" style="background: #111;">Enter The Future</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+
+        /* ==========================================
+           1. LOAD HIGH-RES TEXTURES
+           ========================================== */
+        const textureLoader = new THREE.TextureLoader();
+        
+        // High-Res Concrete Texture for structure
+        const concreteDiffuse = textureLoader.load('https://images.unsplash.com/photo-1622322851551-71fb589baed6?q=80&w=1024&auto=format&fit=crop');
+        concreteDiffuse.wrapS = THREE.RepeatWrapping;
+        concreteDiffuse.wrapT = THREE.RepeatWrapping;
+        concreteDiffuse.repeat.set(1, 1);
+
+        // Warm Wood Texture for accents
+        const woodDiffuse = textureLoader.load('https://images.unsplash.com/photo-1546484396-fb3fc6f95f98?q=80&w=1024&auto=format&fit=crop');
+        woodDiffuse.wrapS = THREE.RepeatWrapping;
+        woodDiffuse.wrapT = THREE.RepeatWrapping;
+        woodDiffuse.repeat.set(2, 2);
+
+        /* ==========================================
+           2. SCENE & LIGHTING SETUP
+           ========================================== */
+        const canvas = document.querySelector('#webgl-canvas');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color('#e4e4e6'); 
+        scene.fog = new THREE.Fog('#e4e4e6', 15, 80);
+
+        const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 300);
+        
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap; 
+
+        // Lighting designed to highlight textures
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x8d99ae, 0.4);
+        scene.add(hemiLight);
+
+        const dirLight = new THREE.DirectionalLight(0xfffaed, 0); // Starts invisible for sketch phase
+        dirLight.position.set(30, 40, -10);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 2048; 
+        dirLight.shadow.mapSize.height = 2048;
+        dirLight.shadow.camera.near = 0.5;
+        dirLight.shadow.camera.far = 100;
+        dirLight.shadow.camera.left = -20;
+        dirLight.shadow.camera.right = 20;
+        dirLight.shadow.camera.top = 20;
+        dirLight.shadow.camera.bottom = -20;
+        scene.add(dirLight);
+
+        /* ==========================================
+           3. PHOTOREALISTIC MATERIALS
+           ========================================== */
+        // The Blueprint Line Material
+        const sketchLineMat = new THREE.LineDashedMaterial({ 
+            color: 0x111111, linewidth: 1, dashSize: 2000, gapSize: 2000, 
+            transparent: true, opacity: 0.85 
+        });
+        sketchLineMat.dashOffset = 2000; 
+        
+        const gridHelper = new THREE.GridHelper(100, 50, 0xaaaaaa, 0xcccccc);
+        gridHelper.position.y = 0.01;
+        gridHelper.material.transparent = true;
+        scene.add(gridHelper);
+
+        // Realistic Concrete
+        const concreteMaterial = new THREE.MeshStandardMaterial({ 
+            map: concreteDiffuse,
+            roughness: 0.8, 
+            metalness: 0.1,
+            transparent: true, opacity: 0 
+        });
+        
+        // Realistic Wood
+        const woodMaterial = new THREE.MeshStandardMaterial({ 
+            map: woodDiffuse,
+            roughness: 0.6, 
+            metalness: 0.0,
+            transparent: true, opacity: 0
+        });
+
+        // Advanced Physical Glass (Refractive & Reflective)
+        const glassMaterial = new THREE.MeshPhysicalMaterial({
+            color: 0xffffff,
+            metalness: 0.1,
+            roughness: 0.05,
+            transmission: 0.9, // This makes it glass
+            ior: 1.5,
+            thickness: 0.5,
+            transparent: true, opacity: 0
+        });
+
+        /* ==========================================
+           4. BUILDING THE STRUCTURE
+           ========================================== */
+        const cityGroup = new THREE.Group();
+        scene.add(cityGroup);
+
+        const ground = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), concreteMaterial);
+        ground.rotation.x = -Math.PI / 2;
+        ground.receiveShadow = true;
+        scene.add(ground);
+
+        function createArchitecturalBlock(geo, mat, x, y, z, parentGroup) {
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.position.set(x, y, z);
+            mesh.castShadow = true; mesh.receiveShadow = true;
+            
+            const edges = new THREE.EdgesGeometry(geo);
+            const lines = new THREE.LineSegments(edges, sketchLineMat);
+            lines.computeLineDistances(); 
+            mesh.add(lines);
+            
+            parentGroup.add(mesh);
+            return mesh;
+        }
+
+        // Generate the HQ with Concrete, Wood, and Glass
+        function createDetailedHQ() {
+            const hqGroup = new THREE.Group();
+            
+            // Base foundation
+            createArchitecturalBlock(new THREE.BoxGeometry(8, 1, 8), concreteMaterial, 0, 0.5, 0, hqGroup);
+            
+            const floors = 5;
+            for(let f = 0; f < floors; f++) {
+                const yPos = 1.5 + (f * 2.5);
+                
+                // Concrete Floor Slab
+                createArchitecturalBlock(new THREE.BoxGeometry(8.5, 0.4, 8.5), concreteMaterial, 0, yPos, 0, hqGroup);
+                
+                // Wood Core
+                createArchitecturalBlock(new THREE.BoxGeometry(4, 2.1, 4), woodMaterial, 0, yPos + 1.25, -1, hqGroup);
+                
+                // Glass Facade (Front)
+                createArchitecturalBlock(new THREE.BoxGeometry(7, 2.1, 0.2), glassMaterial, 0, yPos + 1.25, 3.5, hqGroup);
+                
+                // Concrete Pillars
+                createArchitecturalBlock(new THREE.BoxGeometry(0.5, 2.1, 0.5), concreteMaterial, -3.5, yPos + 1.25, 3.5, hqGroup);
+                createArchitecturalBlock(new THREE.BoxGeometry(0.5, 2.1, 0.5), concreteMaterial, 3.5, yPos + 1.25, 3.5, hqGroup);
+            }
+
+            // Angular Roof Feature
+            createArchitecturalBlock(new THREE.BoxGeometry(6, 1.5, 6), woodMaterial, -0.5, 14.5, -0.5, hqGroup);
+
+            scene.add(hqGroup);
+        }
+        createDetailedHQ();
+
+        // Background City blocks
+        function createCityBlocks() {
+            for(let i = 0; i < 30; i++) {
+                const x = (Math.random() - 0.5) * 60;
+                const z = (Math.random() - 0.5) * 60;
+                if(Math.abs(x) < 10 && Math.abs(z) < 10) continue; 
+
+                const width = 2 + Math.random() * 4;
+                const depth = 2 + Math.random() * 4;
+                const height = 2 + Math.random() * 8;
+
+                createArchitecturalBlock(new THREE.BoxGeometry(width, height, depth), concreteMaterial, x, height/2, z, cityGroup);
+            }
+        }
+        createCityBlocks();
+
+        /* ==========================================
+           5. ANIMATION & CAMERA
+           ========================================== */
+        const cameraTarget = new THREE.Vector3(0, 6, 0);
+        camera.position.set(22, 18, 25);
+        camera.lookAt(cameraTarget);
+
+        // Wait for textures to load before starting
+        THREE.DefaultLoadingManager.onLoad = function ( ) {
+            const loadTl = gsap.timeline();
+            loadTl.to("#loader", { opacity: 0, duration: 0.5, onComplete: () => document.getElementById('loader').style.display = 'none' })
+            .to(sketchLineMat, { dashOffset: 0, duration: 3.5, ease: "power2.inOut" }, "+=0.2")
+            .to(".intro-block", { opacity: 1, y: 0, duration: 1.5, ease: "power3.out" }, "-=1.0");
+        };
+
+        const scrollTl = gsap.timeline({
+            scrollTrigger: {
+                trigger: ".scroll-container",
+                start: "top top", end: "bottom bottom", scrub: 1.2 
+            }
+        });
+
+        // STEP 1: Morph to Realistic Textures & Zoom
+        scrollTl.to(camera.position, { x: -12, y: 12, z: 18, ease: "power1.inOut" }, "step1")
+          .to(cameraTarget, { x: 0, y: 6, z: 0, ease: "power1.inOut" }, "step1")
+          
+          // Fade IN Textures and Glass
+          .to(concreteMaterial, { opacity: 1, duration: 0.5, ease: "power2.in" }, "step1")
+          .to(woodMaterial, { opacity: 1, duration: 0.5, ease: "power2.in" }, "step1")
+          .to(glassMaterial, { opacity: 1, duration: 0.5, ease: "power2.in" }, "step1")
+          .to(dirLight, { intensity: 1.5, duration: 0.5, ease: "power2.in" }, "step1")
+          
+          // Fade OUT Sketch
+          .to(sketchLineMat, { opacity: 0, duration: 0.5, ease: "power2.out" }, "step1")
+          .to(gridHelper.material, { opacity: 0, duration: 0.5, ease: "power2.out" }, "step1");
+
+        // STEP 2: Close up on materials
+        scrollTl.to(camera.position, { x: -16, y: 4, z: -10, ease: "power1.inOut" }, "step2")
+          .to(cameraTarget, { x: 0, y: 4, z: 0, ease: "power1.inOut" }, "step2");
+
+        // STEP 3: Drone Pullout
+        scrollTl.to(camera.position, { x: 0, y: 45, z: 15, ease: "power2.inOut" }, "step3")
+          .to(cameraTarget, { x: 0, y: 0, z: 0, ease: "power2.inOut" }, "step3");
+
+        function animate() {
+            camera.lookAt(cameraTarget);
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>

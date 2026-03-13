@@ -421,17 +421,6 @@
             </div>
         </div>
 
-        <div class="section" id="sec5b"></div>
-
-        <div class="section align-right" id="sec5c">
-            <div class="content-block">
-                <h2>Gathering Space</h2>
-                <p>The heart of the home. A grand hall where architecture meets warmth — designed for living, built for legacy.</p>
-            </div>
-        </div>
-
-        <div class="section" id="sec5d"></div>
-
         <div class="section align-center" id="sec6">
             <div class="content-block" style="margin-top: -20vh;">
                 <h2>Build With Us</h2>
@@ -459,7 +448,7 @@
 
         // Initialize Lenis Smooth Scroll
         const lenis = new Lenis({
-            duration: 1.7,
+            duration: 1.5,
             easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
             orientation: 'vertical',
             gestureOrientation: 'vertical',
@@ -874,11 +863,11 @@
         const concreteMat = new THREE.MeshStandardMaterial({
             map: concreteColor,
             normalMap: concreteNormal,
-            normalScale: new THREE.Vector2(1.0, 1.0),
+            normalScale: new THREE.Vector2(0.8, 0.8),
             roughnessMap: roughnessMap,
-            roughness: 0.85,
-            metalness: 0.03,
-            envMapIntensity: 0.5,
+            roughness: 0.88,
+            metalness: 0.02,
+            envMapIntensity: 0.35,
             transparent: true,
             opacity: 0
         });
@@ -886,11 +875,10 @@
         const darkConcreteMat = new THREE.MeshStandardMaterial({
             map: concreteColor,
             normalMap: concreteNormal,
-            normalScale: new THREE.Vector2(0.8, 0.8),
-            roughness: 0.9,
-            metalness: 0.02,
-            color: 0xbab3a8,
-            envMapIntensity: 0.4,
+            normalScale: new THREE.Vector2(0.6, 0.6),
+            roughness: 0.92,
+            metalness: 0.01,
+            color: 0xc8c0b5,
             transparent: true,
             opacity: 0
         });
@@ -907,21 +895,20 @@
 
         const glassMat = new THREE.MeshPhysicalMaterial({
             color: 0x88aacc,
-            roughness: 0.03,
-            metalness: 0.15,
-            transmission: 0.65,
+            roughness: 0.05,
+            metalness: 0.1,
+            transmission: 0.6,
             transparent: true,
             opacity: 0,
-            envMapIntensity: 1.0,
-            clearcoat: 1.0,
-            clearcoatRoughness: 0.05
+            envMapIntensity: 0.8,
+            clearcoat: 1.0
         });
 
         const glassGlowMat = new THREE.MeshStandardMaterial({
             color: 0xffd080,
             emissive: 0xffb347,
             emissiveIntensity: 0,     
-            roughness: 0.15,
+            roughness: 0.2,
             metalness: 0.0,
             transparent: true,
             opacity: 0
@@ -946,120 +933,7 @@
             opacity: 0
         });
 
-        // --- HYPERREALISTIC PROCEDURAL TEXTURES ---
-        function createAsphaltTexture(size) {
-            size = size || 512;
-            const c = document.createElement('canvas'); c.width = size; c.height = size;
-            const ctx = c.getContext('2d');
-            const img = ctx.createImageData(size, size);
-            for (let y = 0; y < size; y++) {
-                for (let x = 0; x < size; x++) {
-                    const idx = (y * size + x) * 4;
-                    const n = fbm(x / 30, y / 30, 5);
-                    const grain = (Math.random() - 0.5) * 12;
-                    const base = 55 + n * 30 + grain;
-                    img.data[idx] = base | 0;
-                    img.data[idx + 1] = (base - 2) | 0;
-                    img.data[idx + 2] = (base - 4) | 0;
-                    img.data[idx + 3] = 255;
-                }
-            }
-            ctx.putImageData(img, 0, 0);
-            ctx.fillStyle = 'rgba(220,210,180,0.7)';
-            ctx.fillRect(size / 2 - 2, 0, 4, size);
-            ctx.fillStyle = 'rgba(240,230,200,0.5)';
-            for (let d = 0; d < size; d += 40) ctx.fillRect(size / 4, d, 3, 20);
-            const tex = new THREE.CanvasTexture(c); tex.wrapS = tex.wrapT = THREE.RepeatWrapping; return tex;
-        }
-
-        function createSidewalkTexture(size) {
-            size = size || 512;
-            const c = document.createElement('canvas'); c.width = size; c.height = size;
-            const ctx = c.getContext('2d');
-            const img = ctx.createImageData(size, size);
-            for (let y = 0; y < size; y++) {
-                for (let x = 0; x < size; x++) {
-                    const idx = (y * size + x) * 4;
-                    const n = fbm(x / 60, y / 60, 3);
-                    const base = 185 + n * 25;
-                    img.data[idx] = base | 0;
-                    img.data[idx + 1] = (base - 5) | 0;
-                    img.data[idx + 2] = (base - 10) | 0;
-                    img.data[idx + 3] = 255;
-                }
-            }
-            ctx.putImageData(img, 0, 0);
-            ctx.strokeStyle = 'rgba(140,130,115,0.5)';
-            ctx.lineWidth = 2;
-            const tileSize = size / 4;
-            for (let i = 0; i <= 4; i++) {
-                ctx.beginPath(); ctx.moveTo(i * tileSize, 0); ctx.lineTo(i * tileSize, size); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(0, i * tileSize); ctx.lineTo(size, i * tileSize); ctx.stroke();
-            }
-            const tex = new THREE.CanvasTexture(c); tex.wrapS = tex.wrapT = THREE.RepeatWrapping; return tex;
-        }
-
-        function createGrassTexture(size) {
-            size = size || 512;
-            const c = document.createElement('canvas'); c.width = size; c.height = size;
-            const ctx = c.getContext('2d');
-            const img = ctx.createImageData(size, size);
-            for (let y = 0; y < size; y++) {
-                for (let x = 0; x < size; x++) {
-                    const idx = (y * size + x) * 4;
-                    const n1 = fbm(x / 40, y / 40, 4);
-                    const n2 = fbm(x / 15 + 100, y / 15 + 100, 3) * 0.2;
-                    img.data[idx] = (60 + n1 * 35 + n2 * 15) | 0;
-                    img.data[idx + 1] = (110 + n1 * 50 + n2 * 25) | 0;
-                    img.data[idx + 2] = (40 + n1 * 20) | 0;
-                    img.data[idx + 3] = 255;
-                }
-            }
-            ctx.putImageData(img, 0, 0);
-            const tex = new THREE.CanvasTexture(c); tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(6, 6); return tex;
-        }
-
-        function createBrickTexture(size) {
-            size = size || 512;
-            const c = document.createElement('canvas'); c.width = size; c.height = size;
-            const ctx = c.getContext('2d');
-            ctx.fillStyle = '#8b5e3c'; ctx.fillRect(0, 0, size, size);
-            const bh = size / 12, bw = size / 4;
-            for (let row = 0; row < 12; row++) {
-                const yy = row * bh;
-                const offset = (row % 2 === 0) ? 0 : bw / 2;
-                ctx.fillStyle = '#6b4c32'; ctx.fillRect(0, yy, size, 2);
-                for (let col = -1; col < 5; col++) {
-                    const xx = col * bw + offset;
-                    ctx.fillStyle = '#6b4c32'; ctx.fillRect(xx, yy, 2, bh);
-                    const n = fbm((xx + row * 50) / 100, yy / 100, 2);
-                    const r = 140 + n * 40 + (Math.random() - 0.5) * 20;
-                    const g = 80 + n * 20 + (Math.random() - 0.5) * 10;
-                    const b = 50 + n * 15;
-                    ctx.fillStyle = `rgb(${r | 0},${g | 0},${b | 0})`;
-                    ctx.fillRect(xx + 3, yy + 3, bw - 5, bh - 5);
-                }
-            }
-            const tex = new THREE.CanvasTexture(c); tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(3, 3); return tex;
-        }
-
-        const asphaltTex = createAsphaltTexture(512);
-        const sidewalkTex = createSidewalkTexture(512);
-        const grassTex = createGrassTexture(512);
-        const brickTex = createBrickTexture(512);
-
-        const asphaltMat = new THREE.MeshStandardMaterial({ map: asphaltTex, roughness: 0.92, normalMap: concreteNormal, normalScale: new THREE.Vector2(0.3, 0.3), transparent: true, opacity: 0 });
-        const sidewalkMat = new THREE.MeshStandardMaterial({ map: sidewalkTex, roughness: 0.85, normalMap: concreteNormal, normalScale: new THREE.Vector2(0.2, 0.2), transparent: true, opacity: 0 });
-        const grassMat = new THREE.MeshStandardMaterial({ map: grassTex, roughness: 0.95, transparent: true, opacity: 0 });
-        const brickMat = new THREE.MeshStandardMaterial({ map: brickTex, roughness: 0.82, normalMap: concreteNormal, normalScale: new THREE.Vector2(0.5, 0.5), transparent: true, opacity: 0 });
-        const windowBlueMat = new THREE.MeshPhysicalMaterial({ color: 0x6688aa, roughness: 0.05, metalness: 0.3, transmission: 0.4, transparent: true, opacity: 0, clearcoat: 0.8 });
-        const treeTrunkMat = new THREE.MeshStandardMaterial({ color: 0x5a3a1a, roughness: 0.9, transparent: true, opacity: 0 });
-        const treeLeafMat = new THREE.MeshStandardMaterial({ color: 0x2d6e1e, roughness: 0.85, transparent: true, opacity: 0 });
-        const streetLightMat = new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.3, metalness: 0.8, transparent: true, opacity: 0 });
-        const streetLightGlowMat = new THREE.MeshStandardMaterial({ color: 0xfff8e0, emissive: 0xffdd80, emissiveIntensity: 0.6, roughness: 0.2, transparent: true, opacity: 0 });
-
-        const allClayMats = [concreteMat, darkConcreteMat, woodMat, glassMat, glassGlowMat, steelMat, groundMat, asphaltMat, sidewalkMat, grassMat, brickMat, windowBlueMat, treeTrunkMat, treeLeafMat, streetLightMat, streetLightGlowMat];
-
+        const allClayMats = [concreteMat, darkConcreteMat, woodMat, glassMat, glassGlowMat, steelMat, groundMat];
 
         /* ==========================================
            4. EDGE & ANNOTATION SYSTEM
@@ -1124,76 +998,10 @@
         scene.add(cityGroup);
 
         const groundGeo = new THREE.PlaneGeometry(150, 150, 1, 1);
-        const ground = new THREE.Mesh(groundGeo, grassMat);
+        const ground = new THREE.Mesh(groundGeo, groundMat);
         ground.rotation.x = -Math.PI / 2;
         ground.receiveShadow = true;
         scene.add(ground);
-
-        // --- COMPOSITE URBAN GROUND ---
-        const urbanGroup = new THREE.Group();
-        scene.add(urbanGroup);
-        function addRoad(x, z, w, d) {
-            const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), asphaltMat);
-            m.rotation.x = -Math.PI / 2; m.position.set(x, 0.02, z);
-            m.receiveShadow = true; urbanGroup.add(m);
-        }
-        function addSidewalk(x, z, w, d) {
-            const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), sidewalkMat);
-            m.rotation.x = -Math.PI / 2; m.position.set(x, 0.03, z);
-            m.receiveShadow = true; urbanGroup.add(m);
-        }
-        // Main roads around the hero building
-        addRoad(0, 18, 120, 8);
-        addRoad(0, -18, 120, 8);
-        addRoad(18, 0, 8, 44);
-        addRoad(-18, 0, 8, 44);
-        // Extended city roads
-        addRoad(0, 40, 120, 6);
-        addRoad(0, -40, 120, 6);
-        addRoad(40, 0, 6, 90);
-        addRoad(-40, 0, 6, 90);
-        // Sidewalks
-        addSidewalk(0, 13.5, 120, 1.5); addSidewalk(0, 22.5, 120, 1.5);
-        addSidewalk(0, -13.5, 120, 1.5); addSidewalk(0, -22.5, 120, 1.5);
-        addSidewalk(13.5, 0, 1.5, 35); addSidewalk(22.5, 0, 1.5, 35);
-        addSidewalk(-13.5, 0, 1.5, 35); addSidewalk(-22.5, 0, 1.5, 35);
-        // Hero building plot pad
-        const plotPad = new THREE.Mesh(new THREE.PlaneGeometry(30, 28), sidewalkMat);
-        plotPad.rotation.x = -Math.PI / 2; plotPad.position.set(0, 0.015, 0);
-        plotPad.receiveShadow = true; urbanGroup.add(plotPad);
-
-        // Trees
-        function addTree(x, z, scale) {
-            scale = scale || 1;
-            const s = scale;
-            // Trunk with slight taper
-            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.12 * s, 0.22 * s, 3.0 * s, 10), treeTrunkMat);
-            trunk.position.set(x, 1.5 * s, z); trunk.castShadow = true; urbanGroup.add(trunk);
-            // Main crown — use icosahedron for organic shape
-            const crown = new THREE.Mesh(new THREE.IcosahedronGeometry(1.4 * s, 2), treeLeafMat);
-            crown.position.set(x, 3.8 * s, z); crown.castShadow = true; urbanGroup.add(crown);
-            // Secondary crown offset
-            const crown2 = new THREE.Mesh(new THREE.IcosahedronGeometry(1.0 * s, 1), treeLeafMat);
-            crown2.position.set(x + 0.6 * s, 3.2 * s, z + 0.4 * s); crown2.castShadow = true; urbanGroup.add(crown2);
-            // Small low crown for fullness
-            const crown3 = new THREE.Mesh(new THREE.IcosahedronGeometry(0.7 * s, 1), treeLeafMat);
-            crown3.position.set(x - 0.4 * s, 3.0 * s, z - 0.3 * s); crown3.castShadow = true; urbanGroup.add(crown3);
-        }
-        for (let i = -5; i <= 5; i++) addTree(i * 8, 13.5, 0.8 + Math.random() * 0.4);
-        for (let i = -4; i <= 4; i++) addTree(i * 9, -13.5, 0.7 + Math.random() * 0.5);
-        for (let i = -2; i <= 2; i++) { addTree(13.5, i * 6, 0.9); addTree(-13.5, i * 6, 0.85); }
-
-        // Street lights
-        function addStreetLight(x, z) {
-            const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 5, 8), streetLightMat);
-            pole.position.set(x, 2.5, z); pole.castShadow = true; urbanGroup.add(pole);
-            const arm = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.06, 0.06), streetLightMat);
-            arm.position.set(x + 0.6, 5, z); urbanGroup.add(arm);
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.15, 0.3), streetLightGlowMat);
-            head.position.set(x + 1.1, 4.9, z); urbanGroup.add(head);
-        }
-        for (let i = -4; i <= 4; i++) addStreetLight(13, i * 8);
-        for (let i = -4; i <= 4; i++) addStreetLight(-13, i * 8);
 
         function createHeroBuilding() {
             const B = buildingGroup;
@@ -1311,64 +1119,34 @@
            ========================================== */
         function createCity() {
             const sr = (function () { let s = 42; return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; })();
-            const cityMats = [concreteMat, darkConcreteMat, brickMat];
 
-            for (let i = 0; i < 55; i++) {
+            for (let i = 0; i < 50; i++) {
                 const x = (sr() - 0.5) * 100;
                 const z = (sr() - 0.5) * 100;
                 if (Math.abs(x) < 16 && Math.abs(z) < 14) continue;
-                // Clear the Step 6 camera corridor (cam at -28,14,38 looking at 0,8,0)
-                if (x > -30 && x < -8 && z > 8 && z < 42) continue;
 
-                const w = 2.5 + sr() * 5;
-                const d = 2.5 + sr() * 5;
-                const h = 3 + sr() * 18;
-                const matChoice = cityMats[Math.floor(sr() * cityMats.length)];
+                const w = 2 + sr() * 4.5;
+                const d = 2 + sr() * 4.5;
+                const h = 2 + sr() * 16;
 
-                block(new THREE.BoxGeometry(w, h, d), matChoice, x, h / 2, z, cityGroup);
+                block(new THREE.BoxGeometry(w, h, d), concreteMat, x, h / 2, z, cityGroup);
 
-                // Window grid on taller buildings
-                if (h > 6) {
-                    const windowRows = Math.floor(h / 2.5);
-                    const windowCols = Math.floor(w / 1.5);
-                    for (let wr = 0; wr < windowRows; wr++) {
-                        for (let wc = 0; wc < windowCols; wc++) {
-                            const wx = x - w / 2 + 0.8 + wc * 1.4;
-                            const wy = 1.5 + wr * 2.5;
-                            if (wy > h - 1) continue;
-                            const winF = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 1.4), windowBlueMat);
-                            winF.position.set(wx, wy, z + d / 2 + 0.02); cityGroup.add(winF);
-                            if (wc < Math.floor(d / 1.5)) {
-                                const winS = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 1.4), windowBlueMat);
-                                winS.rotation.y = Math.PI / 2;
-                                winS.position.set(x + w / 2 + 0.02, wy, z - d / 2 + 0.8 + wc * 1.4); cityGroup.add(winS);
-                            }
-                        }
-                    }
-                }
-
-                // Rooftop details
-                if (sr() > 0.5) {
-                    block(new THREE.BoxGeometry(w + 0.4, 0.15, d + 0.4), darkConcreteMat, x, h + 0.08, z, cityGroup);
-                }
-                if (sr() > 0.6 && h > 8) {
-                    const acw = 0.6 + sr() * 0.8;
-                    block(new THREE.BoxGeometry(acw, 0.8, acw), steelMat, x + (sr() - 0.5) * w * 0.5, h + 0.5, z + (sr() - 0.5) * d * 0.5, cityGroup);
-                }
                 if (sr() > 0.55) {
                     const h2 = h * (0.25 + sr() * 0.25);
-                    block(new THREE.BoxGeometry(w * 0.6, h2, d * 0.6), sr() > 0.65 ? darkConcreteMat : brickMat, x, h + h2 / 2, z, cityGroup);
+                    block(new THREE.BoxGeometry(w * 0.6, h2, d * 0.6),
+                        sr() > 0.65 ? darkConcreteMat : concreteMat,
+                        x, h + h2 / 2, z, cityGroup);
+                }
+                if (sr() > 0.4) {
+                    block(new THREE.BoxGeometry(w + 0.5, 0.12, d + 0.5), concreteMat, x, h + 0.06, z, cityGroup);
                 }
             }
 
-            for (let c = 0; c < 6; c++) {
+            for (let c = 0; c < 5; c++) {
                 const cx = (sr() - 0.5) * 80, cz = (sr() - 0.5) * 80;
                 if (Math.abs(cx) < 18 && Math.abs(cz) < 16) continue;
-                const ch = 6 + sr() * 14, cr = 1.5 + sr() * 2;
+                const ch = 5 + sr() * 12, cr = 1.5 + sr() * 2;
                 block(new THREE.CylinderGeometry(cr, cr, ch, 18), concreteMat, cx, ch / 2, cz, cityGroup);
-                if (ch > 10) {
-                    block(new THREE.CylinderGeometry(cr + 0.05, cr + 0.05, ch - 2, 18), windowBlueMat, cx, ch / 2, cz, cityGroup);
-                }
             }
         }
         createCity();
@@ -1881,200 +1659,6 @@
             return lineMats;
         });
 
-        // =============================================
-        //  HALL ROOM (offset at z: +10 inside roomGroup)
-        // =============================================
-        const HALL_Z = 10; // z-offset for the hall
-
-        // Hall-specific lighting
-        const hallLight = new THREE.PointLight(0xffecd0, 0, 25, 1.5);
-        hallLight.position.set(0, ROOM_Y + 4.0, HALL_Z); hallLight.castShadow = true;
-        hallLight.shadow.mapSize.set(1024, 1024); scene.add(hallLight);
-        const hallAmbient = new THREE.PointLight(0xfff5e6, 0, 20, 1.5);
-        hallAmbient.position.set(-2, ROOM_Y + 3.5, HALL_Z - 2); scene.add(hallAmbient);
-
-        // Hall pendant light material
-        const hallPendantMat = new THREE.MeshStandardMaterial({
-            color: 0xfff8e0, roughness: 0.4, emissive: 0xffe0a0, emissiveIntensity: 0,
-            transparent: true, opacity: 0, side: THREE.DoubleSide
-        });
-        const hallPendantFrameMat = new THREE.MeshPhysicalMaterial({
-            color: 0x222222, roughness: 0.2, metalness: 0.9, clearcoat: 0.5,
-            transparent: true, opacity: 0
-        });
-
-        const hallFurniturePieces = [];
-        const hallFurnitureStartIdx = furniturePieces.length;
-
-        // ---- HALL PIECE 0: Room Shell ----
-        createFurniturePiece((g) => {
-            const Hz = HALL_Z;
-            // Floor
-            roomBlock(new THREE.BoxGeometry(10, 0.15, 8), floorWoodMat, 0, 0, Hz, g);
-            roomBlock(new THREE.BoxGeometry(10.1, 0.06, 8.1), sofaDarkMat, 0, -0.1, Hz, g);
-            // Back wall
-            roomBlock(new THREE.BoxGeometry(10, 4.5, 0.22), wallMat, 0, 2.35, Hz + 4, g);
-            // Right wall
-            roomBlock(new THREE.BoxGeometry(0.22, 4.5, 8), wallMat, 5, 2.35, Hz, g);
-            // Left wall (with window opening)
-            roomBlock(new THREE.BoxGeometry(0.22, 4.5, 3), wallMat, -5, 2.35, Hz - 2.5, g);
-            roomBlock(new THREE.BoxGeometry(0.22, 4.5, 3), wallMat, -5, 2.35, Hz + 2.5, g);
-            roomBlock(new THREE.BoxGeometry(0.22, 1.2, 2), wallMat, -5, 3.9, Hz, g);
-            roomBlock(new THREE.BoxGeometry(0.22, 0.6, 2), wallMat, -5, 0.4, Hz, g);
-            // Floor moldings
-            roomBlock(new THREE.BoxGeometry(10, 0.18, 0.08), moldingMat, 0, 0.16, Hz + 3.96, g);
-            roomBlock(new THREE.BoxGeometry(0.08, 0.18, 8), moldingMat, -4.96, 0.16, Hz, g);
-            roomBlock(new THREE.BoxGeometry(0.08, 0.18, 8), moldingMat, 4.96, 0.16, Hz, g);
-            // Ceiling moldings
-            roomBlock(new THREE.BoxGeometry(10, 0.08, 0.18), moldingMat, 0, 4.56, Hz + 3.9, g);
-            roomBlock(new THREE.BoxGeometry(0.18, 0.08, 8), moldingMat, -4.9, 4.56, Hz, g);
-            roomBlock(new THREE.BoxGeometry(0.18, 0.08, 8), moldingMat, 4.9, 4.56, Hz, g);
-            // Archway between bedroom and hall (open front)
-            roomBlock(new THREE.BoxGeometry(3, 0.22, 0.22), moldingMat, -3, 3.2, Hz - 4, g);
-            roomBlock(new THREE.BoxGeometry(3, 0.22, 0.22), moldingMat, 3, 3.2, Hz - 4, g);
-            roomBlock(new THREE.BoxGeometry(0.22, 3.2, 0.22), moldingMat, -1.5, 1.6, Hz - 4, g);
-            roomBlock(new THREE.BoxGeometry(0.22, 3.2, 0.22), moldingMat, 1.5, 1.6, Hz - 4, g);
-            roomBlock(new THREE.BoxGeometry(3, 0.18, 0.18), moldingMat, 0, 3.3, Hz - 4, g);
-            // Window glass
-            roomBlock(new THREE.BoxGeometry(0.04, 2.6, 1.8), windowGlowMat, -4.88, 2.0, Hz, g);
-            // Window frame
-            roomBlock(new THREE.BoxGeometry(0.1, 2.8, 0.1), metalAccentMat, -4.88, 2.0, Hz - 1, g);
-            roomBlock(new THREE.BoxGeometry(0.1, 2.8, 0.1), metalAccentMat, -4.88, 2.0, Hz + 1, g);
-            roomBlock(new THREE.BoxGeometry(0.1, 0.1, 2.1), metalAccentMat, -4.88, 3.4, Hz, g);
-            roomBlock(new THREE.BoxGeometry(0.1, 0.1, 2.1), metalAccentMat, -4.88, 0.7, Hz, g);
-            return [floorWoodMat, wallMat, moldingMat, sofaDarkMat, windowGlowMat, metalAccentMat];
-        });
-        hallFurniturePieces.push(furniturePieces[furniturePieces.length - 1]);
-
-        // ---- HALL PIECE 1: Dining Table ----
-        createFurniturePiece((g) => {
-            const Hz = HALL_Z;
-            // Table top
-            roomBlock(new THREE.BoxGeometry(3.0, 0.08, 1.6), tableMat, 0, 0.78, Hz, g);
-            roomBlock(new THREE.BoxGeometry(3.06, 0.03, 1.66), chairFrameMat, 0, 0.74, Hz, g);
-            // Legs (metal)
-            const legGeo = new THREE.CylinderGeometry(0.04, 0.05, 0.75, 8);
-            roomBlock(legGeo, metalAccentMat, -1.3, 0.38, Hz - 0.65, g);
-            roomBlock(legGeo, metalAccentMat, 1.3, 0.38, Hz - 0.65, g);
-            roomBlock(legGeo, metalAccentMat, -1.3, 0.38, Hz + 0.65, g);
-            roomBlock(legGeo, metalAccentMat, 1.3, 0.38, Hz + 0.65, g);
-            // Cross bars
-            roomBlock(new THREE.BoxGeometry(2.6, 0.04, 0.04), metalAccentMat, 0, 0.25, Hz - 0.6, g);
-            roomBlock(new THREE.BoxGeometry(2.6, 0.04, 0.04), metalAccentMat, 0, 0.25, Hz + 0.6, g);
-            // Tabletop items — vase
-            roomBlock(new THREE.CylinderGeometry(0.1, 0.12, 0.28, 12), plantPotMat, 0, 0.96, Hz, g);
-            roomBlock(new THREE.SphereGeometry(0.12, 8, 8), plantLeafMat, 0, 1.15, Hz, g);
-            // Plates
-            roomBlock(new THREE.CylinderGeometry(0.18, 0.18, 0.02, 14), cushionMat, -0.8, 0.84, Hz - 0.3, g);
-            roomBlock(new THREE.CylinderGeometry(0.18, 0.18, 0.02, 14), cushionMat, 0.8, 0.84, Hz - 0.3, g);
-            roomBlock(new THREE.CylinderGeometry(0.18, 0.18, 0.02, 14), cushionMat, -0.8, 0.84, Hz + 0.3, g);
-            roomBlock(new THREE.CylinderGeometry(0.18, 0.18, 0.02, 14), cushionMat, 0.8, 0.84, Hz + 0.3, g);
-            return [tableMat, chairFrameMat, metalAccentMat, plantPotMat, plantLeafMat, cushionMat];
-        });
-        hallFurniturePieces.push(furniturePieces[furniturePieces.length - 1]);
-
-        // ---- HALL PIECE 2: Dining Chairs ----
-        createFurniturePiece((g) => {
-            const Hz = HALL_Z;
-            function diningChair(cx, cz, ry) {
-                const cg = new THREE.Group();
-                roomBlock(new THREE.BoxGeometry(0.55, 0.06, 0.55), chairMat, 0, 0.48, 0, cg);
-                roomBlock(new THREE.BoxGeometry(0.58, 0.04, 0.58), chairFrameMat, 0, 0.44, 0, cg);
-                const cl = new THREE.CylinderGeometry(0.02, 0.025, 0.44, 6);
-                roomBlock(cl, chairFrameMat, -0.22, 0.22, -0.22, cg);
-                roomBlock(cl, chairFrameMat, 0.22, 0.22, -0.22, cg);
-                roomBlock(cl, chairFrameMat, -0.22, 0.22, 0.22, cg);
-                roomBlock(cl, chairFrameMat, 0.22, 0.22, 0.22, cg);
-                roomBlock(new THREE.BoxGeometry(0.5, 0.65, 0.04), chairMat, 0, 0.85, 0.27, cg);
-                roomBlock(new THREE.BoxGeometry(0.52, 0.68, 0.03), chairFrameMat, 0, 0.85, 0.29, cg);
-                cg.position.set(cx, 0, cz);
-                cg.rotation.y = ry;
-                g.add(cg);
-            }
-            diningChair(-0.8, Hz - 1.2, Math.PI);
-            diningChair(0.8, Hz - 1.2, Math.PI);
-            diningChair(-0.8, Hz + 1.2, 0);
-            diningChair(0.8, Hz + 1.2, 0);
-            return [chairMat, chairFrameMat];
-        });
-        hallFurniturePieces.push(furniturePieces[furniturePieces.length - 1]);
-
-        // ---- HALL PIECE 3: Bookshelf ----
-        createFurniturePiece((g) => {
-            const Hz = HALL_Z;
-            const bx = 4.2, bz = Hz + 3.6;
-            // Frame
-            roomBlock(new THREE.BoxGeometry(2.8, 3.5, 0.35), tvConsoleMat, bx, 1.85, bz, g);
-            roomBlock(new THREE.BoxGeometry(2.84, 0.04, 0.38), chairFrameMat, bx, 3.6, bz, g);
-            roomBlock(new THREE.BoxGeometry(2.84, 0.04, 0.38), chairFrameMat, bx, 0.1, bz, g);
-            // Shelves
-            for (let sh = 0; sh < 4; sh++) {
-                roomBlock(new THREE.BoxGeometry(2.7, 0.04, 0.32), chairFrameMat, bx, 0.5 + sh * 0.8, bz, g);
-            }
-            // Books (colored blocks on shelves)
-            const bookColors = [artMats[0], artMats[1], artMats[2], artMats[3], cushionAccentMat, sofaMat];
-            for (let sh = 0; sh < 4; sh++) {
-                const sy = 0.55 + sh * 0.8;
-                let bxo = bx - 1.2;
-                for (let b = 0; b < 5 + Math.floor(Math.random() * 3); b++) {
-                    const bw = 0.08 + Math.random() * 0.1;
-                    const bh = 0.35 + Math.random() * 0.3;
-                    const bc = bookColors[Math.floor(Math.random() * bookColors.length)];
-                    roomBlock(new THREE.BoxGeometry(bw, bh, 0.22), bc, bxo, sy + bh / 2, bz, g);
-                    bxo += bw + 0.04;
-                }
-            }
-            return [tvConsoleMat, chairFrameMat, ...artMats, cushionAccentMat, sofaMat];
-        });
-        hallFurniturePieces.push(furniturePieces[furniturePieces.length - 1]);
-
-        // ---- HALL PIECE 4: Pendant Light ----
-        createFurniturePiece((g) => {
-            const Hz = HALL_Z;
-            // Wire
-            roomBlock(new THREE.CylinderGeometry(0.01, 0.01, 1.2, 6), hallPendantFrameMat, 0, 3.9, Hz, g);
-            // Shade (3 nested cylinders for depth)
-            roomBlock(new THREE.CylinderGeometry(0.4, 0.5, 0.5, 20), hallPendantMat, 0, 3.2, Hz, g);
-            roomBlock(new THREE.CylinderGeometry(0.35, 0.45, 0.45, 18), hallPendantMat, 0, 3.22, Hz, g);
-            // Bottom rim
-            roomBlock(new THREE.TorusGeometry(0.5, 0.015, 6, 20), hallPendantFrameMat, 0, 2.95, Hz, g);
-            // Bulb glow
-            roomBlock(new THREE.SphereGeometry(0.08, 8, 8), hallPendantMat, 0, 3.0, Hz, g);
-            return [hallPendantMat, hallPendantFrameMat];
-        });
-        hallFurniturePieces.push(furniturePieces[furniturePieces.length - 1]);
-
-        // ---- HALL PIECE 5: Hall Rug ----
-        createFurniturePiece((g) => {
-            const Hz = HALL_Z;
-            roomBlock(new THREE.BoxGeometry(4.0, 0.04, 2.5), rugMat, 0, 0.1, Hz, g);
-            roomBlock(new THREE.BoxGeometry(4.1, 0.02, 0.06), moldingMat, 0, 0.11, Hz - 1.25, g);
-            roomBlock(new THREE.BoxGeometry(4.1, 0.02, 0.06), moldingMat, 0, 0.11, Hz + 1.25, g);
-            return [rugMat, moldingMat];
-        });
-        hallFurniturePieces.push(furniturePieces[furniturePieces.length - 1]);
-
-        // ---- HALL PIECE 6: Sideboard + Decor ----
-        createFurniturePiece((g) => {
-            const Hz = HALL_Z;
-            const sx = -3.5, sz = Hz + 3.6;
-            // Sideboard body
-            roomBlock(new THREE.BoxGeometry(2.2, 0.8, 0.45), tvConsoleMat, sx, 0.48, sz, g);
-            roomBlock(new THREE.BoxGeometry(2.24, 0.04, 0.5), tableMat, sx, 0.9, sz, g);
-            // Doors
-            roomBlock(new THREE.BoxGeometry(1.0, 0.6, 0.02), tvConsoleMat, sx - 0.5, 0.48, sz - 0.21, g);
-            roomBlock(new THREE.BoxGeometry(1.0, 0.6, 0.02), tvConsoleMat, sx + 0.5, 0.48, sz - 0.21, g);
-            roomBlock(new THREE.BoxGeometry(0.15, 0.02, 0.04), metalAccentMat, sx - 0.5, 0.48, sz - 0.22, g);
-            roomBlock(new THREE.BoxGeometry(0.15, 0.02, 0.04), metalAccentMat, sx + 0.5, 0.48, sz - 0.22, g);
-            // Art on top
-            roomBlock(new THREE.BoxGeometry(0.7, 0.9, 0.04), artFrameMat, sx, 1.45, sz + 0.2, g);
-            roomBlock(new THREE.BoxGeometry(0.6, 0.8, 0.05), artMats[1], sx, 1.45, sz + 0.18, g);
-            // Candle holder
-            roomBlock(new THREE.CylinderGeometry(0.05, 0.06, 0.15, 8), metalAccentMat, sx + 0.8, 0.98, sz, g);
-            roomBlock(new THREE.CylinderGeometry(0.025, 0.025, 0.12, 6), cushionMat, sx + 0.8, 1.12, sz, g);
-            return [tvConsoleMat, tableMat, metalAccentMat, artFrameMat, artMats[1], cushionMat];
-        });
-        hallFurniturePieces.push(furniturePieces[furniturePieces.length - 1]);
 
         /* ==========================================
            8. COMPUTE MAX DISTANCE
@@ -2161,7 +1745,6 @@
         const exteriorMeshes = [];
         buildingGroup.traverse(c => { if (c.isMesh) exteriorMeshes.push(c); });
         cityGroup.traverse(c => { if (c.isMesh) exteriorMeshes.push(c); });
-        urbanGroup.traverse(c => { if (c.isMesh) exteriorMeshes.push(c); });
         exteriorMeshes.push(ground);
 
         sTl.to(camera.position, { x: 8, y: ROOM_Y + 5, z: 8, ease: "power2.inOut" }, "s3")
@@ -2183,13 +1766,11 @@
                 if (p > 0.45) {
                     buildingGroup.visible = false;
                     cityGroup.visible = false;
-                    urbanGroup.visible = false;
                     ground.visible = false;
                     scene.fog = null;
                 } else {
                     buildingGroup.visible = true;
                     cityGroup.visible = true;
-                    urbanGroup.visible = true;
                     ground.visible = true;
                     scene.fog = new THREE.Fog(bgColor, 30, 120);
                     exteriorMeshes.forEach(m => {
@@ -2240,37 +1821,6 @@
         sTl.to(camera.position, { x: 12, y: ROOM_Y + 9, z: 11, ease: "power2.inOut" }, "s5")
             .to(camTarget, { x: -1, y: ROOM_Y + 1, z: -0.5, ease: "power2.inOut" }, "s5");
 
-        // STEP 5b: Camera enters the hall through the archway
-        sTl.to(camera.position, { x: -6, y: ROOM_Y + 4, z: HALL_Z - 6, ease: "power2.inOut" }, "s5b")
-            .to(camTarget, { x: 1, y: ROOM_Y + 1.2, z: HALL_Z + 1, ease: "power2.inOut" }, "s5b");
-        // Scale in the hall shell (hallFurniturePieces[0])
-        sTl.to(hallFurniturePieces[0].group.scale, { x: 1, y: 1, z: 1, duration: 0.5, ease: "power2.out" }, "s5b");
-        hallFurniturePieces[0].mats.forEach(m => sTl.to(m, { opacity: 1, duration: 0.5 }, "s5b"));
-        // Hall lighting
-        sTl.to(hallLight, { intensity: 6.0, duration: 0.5 }, "s5b")
-           .to(hallAmbient, { intensity: 4.0, duration: 0.5 }, "s5b");
-        sTl.to(windowGlowMat, { emissiveIntensity: 1.5, duration: 0.4 }, "s5b");
-
-        // STEP 5c: Hall furniture assembles — camera orbits slightly
-        sTl.to(camera.position, { x: 5, y: ROOM_Y + 4, z: HALL_Z + 6, ease: "power1.inOut" }, "s5c")
-            .to(camTarget, { x: 0, y: ROOM_Y + 1.2, z: HALL_Z + 0.5, ease: "power1.inOut" }, "s5c");
-        for (let i = 1; i < hallFurniturePieces.length; i++) {
-            const piece = hallFurniturePieces[i];
-            sTl.to(piece.group.scale, {
-                x: 1, y: 1, z: 1,
-                duration: 0.25,
-                ease: "back.out(1.7)"
-            }, i === 1 ? "s5c" : ">-0.06");
-            piece.mats.forEach(m => {
-                sTl.to(m, { opacity: 1, duration: 0.18 }, "<");
-            });
-        }
-        sTl.to(hallPendantMat, { emissiveIntensity: 1.0, duration: 0.2 }, ">-0.05");
-
-        // STEP 5d: Slight pull back from hall — wider shot before exterior
-        sTl.to(camera.position, { x: 8, y: ROOM_Y + 5.5, z: HALL_Z - 4, ease: "power2.inOut" }, "s5d")
-            .to(camTarget, { x: 0, y: ROOM_Y + 1.5, z: HALL_Z + 1, ease: "power2.inOut" }, "s5d");
-
         // STEP 6: Zoom out to the fully completed, ultra-realistic exterior
         sTl.to(camera.position, { x: -28, y: 14, z: 38, ease: "power2.inOut" }, "s6")
            .to(camTarget, { x: 0, y: 8, z: 0, ease: "power2.inOut" }, "s6");
@@ -2290,22 +1840,12 @@
                 if (p > 0.05) { 
                     buildingGroup.visible = true;
                     cityGroup.visible = true;
-                    urbanGroup.visible = true;
                     ground.visible = true;
                     scene.fog = new THREE.Fog(bgColor, 30, 120);
-                } else {
-                    buildingGroup.visible = false;
-                    cityGroup.visible = false;
-                    urbanGroup.visible = false;
-                    ground.visible = false;
-                    scene.fog = null;
                 }
                 
                 exteriorMeshes.forEach(m => {
-                    if (m.material) {
-                        m.material.transparent = true;
-                        m.material.opacity = extOpacity;
-                    }
+                    if (m.material) m.material.opacity = extOpacity;
                 });
 
                 furniturePieces.forEach(piece => {
@@ -2328,14 +1868,11 @@
            .to(lampSpot, { intensity: 0, duration: 0.5 }, "s6")
            .to(bounceFill, { intensity: 0, duration: 0.5 }, "s6")
            .to(lampShadeMat, { emissiveIntensity: 0, duration: 0.5 }, "s6")
-           .to(windowGlowMat, { emissiveIntensity: 0, duration: 0.5 }, "s6")
-           .to(hallLight, { intensity: 0, duration: 0.5 }, "s6")
-           .to(hallAmbient, { intensity: 0, duration: 0.5 }, "s6")
-           .to(hallPendantMat, { emissiveIntensity: 0, duration: 0.5 }, "s6");
+           .to(windowGlowMat, { emissiveIntensity: 0, duration: 0.5 }, "s6");
 
-        sTl.to(sunLight, { intensity: 5.5, duration: 0.8 }, "s6")
-           .to(rimLight, { intensity: 2.0, duration: 0.8 }, "s6")
-           .to(hemiLight, { intensity: 1.0, duration: 0.8 }, "s6");
+        sTl.to(sunLight, { intensity: 4.5, duration: 0.8 }, "s6")
+           .to(rimLight, { intensity: 1.5, duration: 0.8 }, "s6")
+           .to(hemiLight, { intensity: 0.8, duration: 0.8 }, "s6");
 
         sTl.to(sketchLineMat.uniforms.uOpacity, { value: 0, duration: 0.1 }, "s6")
            .to(annoLineMat.uniforms.uOpacity, { value: 0, duration: 0.1 }, "s6");
