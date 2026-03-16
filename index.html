@@ -390,12 +390,12 @@
 
 <body>
 
-    <!-- <div id="loader">
+    <div id="loader">
         <span>INITIATING...</span>
         <div class="loader-bar">
             <div class="loader-bar-fill"></div>
         </div>
-    </div> -->
+    </div>
 
     <canvas id="webgl-canvas"></canvas>
 
@@ -1119,27 +1119,43 @@
         }
 
         function createBrickTexture(size) {
-            size = size || 512;
+            size = size || 1024;
             const c = document.createElement('canvas'); c.width = size; c.height = size;
             const ctx = c.getContext('2d');
-            ctx.fillStyle = '#8b5e3c'; ctx.fillRect(0, 0, size, size);
-            const bh = size / 12, bw = size / 4;
-            for (let row = 0; row < 12; row++) {
+            // Base mortar color
+            ctx.fillStyle = '#b0a89e'; ctx.fillRect(0, 0, size, size);
+            // 32 rows of bricks
+            const rows = 32;
+            const cols = 16;
+            const bh = size / rows;
+            const bw = size / cols;
+            const mortar = 3; // pixels
+            for (let row = 0; row < rows; row++) {
                 const yy = row * bh;
                 const offset = (row % 2 === 0) ? 0 : bw / 2;
-                ctx.fillStyle = '#6b4c32'; ctx.fillRect(0, yy, size, 2);
-                for (let col = -1; col < 5; col++) {
+                for (let col = -1; col <= cols; col++) {
                     const xx = col * bw + offset;
-                    ctx.fillStyle = '#6b4c32'; ctx.fillRect(xx, yy, 2, bh);
-                    const n = fbm((xx + row * 50) / 100, yy / 100, 2);
-                    const r = 140 + n * 40 + (Math.random() - 0.5) * 20;
-                    const g = 80 + n * 20 + (Math.random() - 0.5) * 10;
-                    const b = 50 + n * 15;
+                    // Skip drawing mortar, just draw the brick inset
+                    const n = fbm((xx + row * 90) / 100, yy / 100, 3);
+                    const isDark = Math.random() > 0.8;
+                    const isRed = Math.random() > 0.7;
+                    let r = 160 + n * 30 + (Math.random() - 0.5) * 20;
+                    let g = 80 + n * 15 + (Math.random() - 0.5) * 10;
+                    let b = 60 + n * 10;
+                    if (isDark) { r *= 0.7; g *= 0.7; b *= 0.7; }
+                    if (isRed) { r *= 1.1; g *= 0.8; b *= 0.8; }
                     ctx.fillStyle = `rgb(${r | 0},${g | 0},${b | 0})`;
-                    ctx.fillRect(xx + 3, yy + 3, bw - 5, bh - 5);
+                    ctx.fillRect(xx + mortar / 2, yy + mortar / 2, bw - mortar, bh - mortar);
+
+                    // Add slight noise/texture to each brick
+                    ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.05})`;
+                    ctx.fillRect(xx + mortar / 2, yy + mortar / 2, bw - mortar, bh - mortar);
                 }
             }
-            const tex = new THREE.CanvasTexture(c); tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(3, 3); return tex;
+            const tex = new THREE.CanvasTexture(c); tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+            // Repeat base scale
+            tex.repeat.set(1, 1);
+            return tex;
         }
 
         const asphaltTex = createAsphaltTexture(512);
@@ -1261,38 +1277,199 @@
         plotPad.rotation.x = -Math.PI / 2; plotPad.position.set(0, 0.015, 0);
         plotPad.receiveShadow = true; urbanGroup.add(plotPad);
 
-        // Trees
+        // Trees — realistic branching with multi-layer canopy
         function addTree(x, z, scale) {
             scale = scale || 1;
             const s = scale;
-            // Trunk with slight taper
-            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.12 * s, 0.22 * s, 3.0 * s, 10), treeTrunkMat);
-            trunk.position.set(x, 1.5 * s, z); trunk.castShadow = true; urbanGroup.add(trunk);
-            // Main crown — use icosahedron for organic shape
-            const crown = new THREE.Mesh(new THREE.IcosahedronGeometry(1.4 * s, 2), treeLeafMat);
-            crown.position.set(x, 3.8 * s, z); crown.castShadow = true; urbanGroup.add(crown);
-            // Secondary crown offset
-            const crown2 = new THREE.Mesh(new THREE.IcosahedronGeometry(1.0 * s, 1), treeLeafMat);
-            crown2.position.set(x + 0.6 * s, 3.2 * s, z + 0.4 * s); crown2.castShadow = true; urbanGroup.add(crown2);
-            // Small low crown for fullness
-            const crown3 = new THREE.Mesh(new THREE.IcosahedronGeometry(0.7 * s, 1), treeLeafMat);
-            crown3.position.set(x - 0.4 * s, 3.0 * s, z - 0.3 * s); crown3.castShadow = true; urbanGroup.add(crown3);
+            const treeGroup = new THREE.Group();
+            treeGroup.position.set(x, 0, z);
+
+            // Main trunk — tapered cylinder with root flare
+            const trunkGeo = new THREE.CylinderGeometry(0.1 * s, 0.28 * s, 3.2 * s, 12);
+            const trunk = new THREE.Mesh(trunkGeo, treeTrunkMat);
+            trunk.position.y = 1.6 * s; trunk.castShadow = true; treeGroup.add(trunk);
+
+            // Root flare — squat wide cone at base
+            const rootFlare = new THREE.Mesh(new THREE.CylinderGeometry(0.28 * s, 0.38 * s, 0.3 * s, 12), treeTrunkMat);
+            rootFlare.position.y = 0.15 * s; rootFlare.castShadow = true; treeGroup.add(rootFlare);
+
+            // Major branches — 3 organic limbs splitting from upper trunk
+            for (let b = 0; b < 3; b++) {
+                const angle = (b / 3) * Math.PI * 2 + Math.random() * 0.5;
+                const branchLen = (1.0 + Math.random() * 0.6) * s;
+                const branchGeo = new THREE.CylinderGeometry(0.03 * s, 0.08 * s, branchLen, 8);
+                const branch = new THREE.Mesh(branchGeo, treeTrunkMat);
+                const pivot = new THREE.Group();
+                pivot.position.set(0, 2.6 * s, 0);
+                pivot.rotation.order = 'YXZ';
+                pivot.rotation.y = angle;
+                pivot.rotation.x = 0.5 + Math.random() * 0.3; // outward splay
+                branch.position.y = branchLen / 2;
+                branch.castShadow = true;
+                pivot.add(branch);
+                treeGroup.add(pivot);
+            }
+
+            // Multi-layered canopy — 7 foliage clusters
+            const foliageClusters = [
+                { ox: 0, oy: 4.0, oz: 0, r: 1.5, detail: 4 },
+                { ox: 0.7, oy: 3.5, oz: 0.5, r: 1.1, detail: 4 },
+                { ox: -0.5, oy: 3.3, oz: -0.6, r: 0.9, detail: 3 },
+                { ox: -0.8, oy: 3.8, oz: 0.3, r: 1.0, detail: 4 },
+                { ox: 0.4, oy: 4.5, oz: -0.4, r: 0.8, detail: 3 },
+                { ox: 0.1, oy: 3.0, oz: 0.8, r: 0.7, detail: 3 },
+                { ox: -0.3, oy: 4.3, oz: -0.2, r: 1.2, detail: 4 }
+            ];
+            foliageClusters.forEach(fc => {
+                const leafGeo = new THREE.IcosahedronGeometry(fc.r * s, fc.detail);
+                // Slightly deform vertices for organic feel
+                const pos = leafGeo.getAttribute('position');
+                for (let v = 0; v < pos.count; v++) {
+                    pos.setXYZ(v,
+                        pos.getX(v) * (0.85 + Math.random() * 0.3),
+                        pos.getY(v) * (0.8 + Math.random() * 0.4),
+                        pos.getZ(v) * (0.85 + Math.random() * 0.3)
+                    );
+                }
+                pos.needsUpdate = true;
+                leafGeo.computeVertexNormals();
+                const leaf = new THREE.Mesh(leafGeo, treeLeafMat);
+                leaf.position.set(fc.ox * s, fc.oy * s, fc.oz * s);
+                leaf.castShadow = true; leaf.receiveShadow = true;
+                treeGroup.add(leaf);
+            });
+
+            urbanGroup.add(treeGroup);
         }
         for (let i = -5; i <= 5; i++) addTree(i * 8, 13.5, 0.8 + Math.random() * 0.4);
         for (let i = -4; i <= 4; i++) addTree(i * 9, -13.5, 0.7 + Math.random() * 0.5);
         for (let i = -2; i <= 2; i++) { addTree(13.5, i * 6, 0.9); addTree(-13.5, i * 6, 0.85); }
 
-        // Street lights
-        function addStreetLight(x, z) {
-            const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 5, 8), streetLightMat);
-            pole.position.set(x, 2.5, z); pole.castShadow = true; urbanGroup.add(pole);
-            const arm = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.06, 0.06), streetLightMat);
-            arm.position.set(x + 0.6, 5, z); urbanGroup.add(arm);
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.15, 0.3), streetLightGlowMat);
-            head.position.set(x + 1.1, 4.9, z); urbanGroup.add(head);
+        // Street lights — realistic curved arm with warm glow sphere
+        function addStreetLight(x, z, ry) {
+            const slGroup = new THREE.Group();
+            slGroup.position.set(x, 0, z);
+            slGroup.rotation.y = ry || 0;
+            // Base plate
+            const base = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.25, 0.15, 12), streetLightMat);
+            base.position.y = 0.075; slGroup.add(base);
+            // Pole — tapered
+            const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.08, 5, 10), streetLightMat);
+            pole.position.y = 2.5; pole.castShadow = true; slGroup.add(pole);
+            // Arching Arm — perfectly connects pole to lamp head via tube geometry
+            const headOffsetX = 1.3;
+            const path = new THREE.CatmullRomCurve3([
+                new THREE.Vector3(0, 4.8, 0),
+                new THREE.Vector3(headOffsetX * 0.4, 5.1, 0),
+                new THREE.Vector3(headOffsetX, 5.05, 0)
+            ]);
+            const armGeo = new THREE.TubeGeometry(path, 10, 0.03, 8, false);
+            const arm = new THREE.Mesh(armGeo, streetLightMat);
+            slGroup.add(arm);
+            // Light head — glowing sphere
+            const headGeo = new THREE.SphereGeometry(0.15, 12, 8);
+            const head = new THREE.Mesh(headGeo, streetLightGlowMat);
+            head.position.set(headOffsetX, 4.95, 0); slGroup.add(head);
+            // Shade cap above sphere
+            const shade = new THREE.Mesh(new THREE.ConeGeometry(0.3, 0.1, 16), streetLightMat);
+            shade.position.set(headOffsetX, 5.12, 0); slGroup.add(shade);
+            urbanGroup.add(slGroup);
         }
-        for (let i = -4; i <= 4; i++) addStreetLight(13, i * 8);
-        for (let i = -4; i <= 4; i++) addStreetLight(-13, i * 8);
+        for (let i = -4; i <= 4; i++) {
+            addStreetLight(13, i * 8, Math.PI); // Right side, points left over road
+            addStreetLight(-13, i * 8, 0);      // Left side, points right over road
+        }
+
+        // --- Road Curbs (raised edges) ---
+        const curbMat = sidewalkMat;
+        function addCurb(x, z, w, d) {
+            const m = new THREE.Mesh(new THREE.BoxGeometry(w, 0.12, d), curbMat);
+            m.position.set(x, 0.06, z); m.castShadow = true; m.receiveShadow = true;
+            urbanGroup.add(m);
+        }
+        // Curbs along main road edges
+        addCurb(0, 14.2, 120, 0.2); addCurb(0, 21.8, 120, 0.2);
+        addCurb(0, -14.2, 120, 0.2); addCurb(0, -21.8, 120, 0.2);
+        addCurb(14.2, 0, 0.2, 36); addCurb(21.8, 0, 0.2, 36);
+        addCurb(-14.2, 0, 0.2, 36); addCurb(-21.8, 0, 0.2, 36);
+
+        // --- Lane Markings (dashed center lines) ---
+        const markingMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.9, transparent: true, opacity: 0 });
+        allClayMats.push(markingMat);
+        function addDashedLine(startX, startZ, endX, endZ, dashLen, gapLen) {
+            const dx = endX - startX, dz = endZ - startZ;
+            const len = Math.sqrt(dx * dx + dz * dz);
+            const dirX = dx / len, dirZ = dz / len;
+            let dist = 0;
+            while (dist < len) {
+                const seg = Math.min(dashLen, len - dist);
+                const cx = startX + dirX * (dist + seg / 2);
+                const cz = startZ + dirZ * (dist + seg / 2);
+                const w = Math.abs(dirX) > 0.5 ? seg : 0.12;
+                const d = Math.abs(dirZ) > 0.5 ? seg : 0.12;
+                const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), markingMat);
+                m.rotation.x = -Math.PI / 2; m.position.set(cx, 0.04, cz);
+                urbanGroup.add(m);
+                dist += seg + gapLen;
+            }
+        }
+        // Center dashes on horizontal roads
+        addDashedLine(-60, 18, 60, 18, 2.5, 2.5);
+        addDashedLine(-60, -18, 60, -18, 2.5, 2.5);
+        // Center dashes on vertical roads
+        addDashedLine(18, -22, 18, 22, 2.5, 2.5);
+        addDashedLine(-18, -22, -18, 22, 2.5, 2.5);
+
+        // --- Crosswalks at intersections ---
+        function addCrosswalk(cx, cz, horiz) {
+            for (let s = 0; s < 6; s++) {
+                const w = horiz ? 0.5 : 3.5;
+                const d = horiz ? 3.5 : 0.5;
+                const ox = horiz ? 0 : (s - 2.5) * 0.9;
+                const oz = horiz ? (s - 2.5) * 0.9 : 0;
+                const stripe = new THREE.Mesh(new THREE.PlaneGeometry(w, d), markingMat);
+                stripe.rotation.x = -Math.PI / 2;
+                stripe.position.set(cx + ox, 0.04, cz + oz);
+                urbanGroup.add(stripe);
+            }
+        }
+        addCrosswalk(18, 18, false); addCrosswalk(-18, 18, false);
+        addCrosswalk(18, -18, false); addCrosswalk(-18, -18, false);
+        addCrosswalk(18, 18, true); addCrosswalk(-18, 18, true);
+        addCrosswalk(18, -18, true); addCrosswalk(-18, -18, true);
+
+        // --- Urban Furniture (benches, bollards) ---
+        const benchMat = new THREE.MeshPhysicalMaterial({ color: 0x7a5c3f, roughness: 0.7, clearcoat: 0.2, transparent: true, opacity: 0 });
+        allClayMats.push(benchMat);
+        function addBench(bx, bz, ry) {
+            const bg = new THREE.Group();
+            // Seat
+            const seat = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.06, 0.5), benchMat);
+            seat.position.set(0, 0.48, 0); seat.castShadow = true; bg.add(seat);
+            // Back
+            const back = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.5, 0.06), benchMat);
+            back.position.set(0, 0.7, 0.22); bg.add(back);
+            // Legs
+            for (const lx of [-0.5, 0.5]) {
+                const leg1 = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.48, 0.06), steelMat);
+                leg1.position.set(lx, 0.24, -0.2); bg.add(leg1);
+                const leg2 = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.48, 0.06), steelMat);
+                leg2.position.set(lx, 0.24, 0.2); bg.add(leg2);
+            }
+            bg.position.set(bx, 0, bz); bg.rotation.y = ry;
+            urbanGroup.add(bg);
+        }
+        addBench(10, 13.3, 0); addBench(-6, 13.3, 0);
+        addBench(10, -13.3, Math.PI); addBench(-6, -13.3, Math.PI);
+
+        // Bollards along sidewalks
+        function addBollard(bx, bz) {
+            const b = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.6, 8), steelMat);
+            b.position.set(bx, 0.3, bz); b.castShadow = true; urbanGroup.add(b);
+            const cap = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), steelMat);
+            cap.position.set(bx, 0.62, bz); urbanGroup.add(cap);
+        }
+        for (let b = -4; b <= 4; b++) { addBollard(14, b * 5); addBollard(-14, b * 5); }
 
         function createHeroBuilding() {
             const B = buildingGroup;
@@ -1376,6 +1553,37 @@
                 block(new THREE.BoxGeometry(0.04, 2.5, 0.35), woodMat, -9.35, f2Y + 1.4, lvz, B);
             }
 
+            // --- Balcony Railings (glass panels on floor slab edges) ---
+            // F1 front balcony
+            block(new THREE.BoxGeometry(12, 0.06, 0.06), steelMat, 0, f1Y + 1.0, 5.25, B); // top rail
+            block(new THREE.BoxGeometry(12, 0.06, 0.06), steelMat, 0, f1Y + 0.4, 5.25, B); // bottom rail
+            for (let r = 0; r < 8; r++) {
+                block(new THREE.BoxGeometry(0.03, 1.0, 0.03), steelMat, -5.5 + r * 1.6, f1Y + 0.5, 5.25, B);
+            }
+            block(new THREE.BoxGeometry(11.8, 0.85, 0.03), glassMat, 0, f1Y + 0.55, 5.22, B);
+            // F1 right balcony
+            block(new THREE.BoxGeometry(0.06, 0.06, 10), steelMat, 6.25, f1Y + 1.0, 0, B);
+            block(new THREE.BoxGeometry(0.03, 0.85, 9.8), glassMat, 6.22, f1Y + 0.55, 0, B);
+            // F2 front balcony
+            block(new THREE.BoxGeometry(7, 0.06, 0.06), steelMat, 1.5, f2Y + 1.0, 5.25, B);
+            block(new THREE.BoxGeometry(6.8, 0.85, 0.03), glassMat, 1.5, f2Y + 0.55, 5.22, B);
+
+            // --- Entrance Canopy ---
+            // Two steel columns at front
+            block(new THREE.CylinderGeometry(0.08, 0.08, 1.2, 10), steelMat, -2, 0.6, 8.5, B);
+            block(new THREE.CylinderGeometry(0.08, 0.08, 1.2, 10), steelMat, 2, 0.6, 8.5, B);
+            // Canopy slab
+            block(new THREE.BoxGeometry(5, 0.1, 2.5), concreteMat, 0, 1.2, 8, B);
+            // Glass underlight
+            block(new THREE.BoxGeometry(4.5, 0.03, 2.0), glassGlowMat, 0, 1.15, 8, B);
+
+            // --- Planter boxes along building front ---
+            for (let p = 0; p < 3; p++) {
+                const px = -3 + p * 3;
+                block(new THREE.BoxGeometry(1.8, 0.4, 0.8), darkConcreteMat, px, 0.35, 7.5, B);
+                // Small shrubs in planters
+                block(new THREE.SphereGeometry(0.5, 8, 6), treeLeafMat, px, 0.9, 7.5, B);
+            }
             addAnnotationLine([-9.5, 0.5, 8], [-9.5, 0.5, 14], B);
             addAnnotationLine([6.5, 0.5, 8], [6.5, 0.5, 14], B);
             addAnnotationLine([-9.5, 0.5, 14], [6.5, 0.5, 14], B);
@@ -1412,21 +1620,52 @@
             const sr = (function () { let s = 42; return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; })();
             const cityMats = [concreteMat, darkConcreteMat, brickMat];
 
+            // Helper to create BoxGeometry with auto-scaled UVs to prevent texture stretching
+            function createCityBox(w, h, d, uvScale = 0.25) {
+                const geo = new THREE.BoxGeometry(w, h, d);
+                const uv = geo.attributes.uv;
+                if (uv.count === 24) {
+                    const sw = w * uvScale, sh = h * uvScale, sd = d * uvScale;
+                    // Right face (0-3)
+                    uv.setXY(0, 0, sh); uv.setXY(1, 0, 0); uv.setXY(2, sd, sh); uv.setXY(3, sd, 0);
+                    // Left face (4-7)
+                    uv.setXY(4, 0, sh); uv.setXY(5, 0, 0); uv.setXY(6, sd, sh); uv.setXY(7, sd, 0);
+                    // Top face (8-11)
+                    uv.setXY(8, 0, sd); uv.setXY(9, 0, 0); uv.setXY(10, sw, sd); uv.setXY(11, sw, 0);
+                    // Bottom face (12-15)
+                    uv.setXY(12, 0, sd); uv.setXY(13, 0, 0); uv.setXY(14, sw, sd); uv.setXY(15, sw, 0);
+                    // Front face (16-19)
+                    uv.setXY(16, 0, sh); uv.setXY(17, 0, 0); uv.setXY(18, sw, sh); uv.setXY(19, sw, 0);
+                    // Back face (20-23)
+                    uv.setXY(20, 0, sh); uv.setXY(21, 0, 0); uv.setXY(22, sw, sh); uv.setXY(23, sw, 0);
+                }
+                uv.needsUpdate = true;
+                return geo;
+            }
+
             for (let i = 0; i < 55; i++) {
                 const x = (sr() - 0.5) * 100;
                 const z = (sr() - 0.5) * 100;
                 if (Math.abs(x) < 16 && Math.abs(z) < 14) continue;
                 // Clear the Step 6 camera corridor (cam at -28,14,38 looking at 0,8,0)
                 if (x > -30 && x < -8 && z > 8 && z < 42) continue;
+                
+                // Remove the extra tall background brick building on the far right
+                if (i === 49) continue;
+                
+                // Keep the cross-roads completely clear of buildings to prevent clipping with trees/sidewalks
+                // The roads + sidewalks span from coordinate ~12 to ~24 in all four directions.
+                if (Math.abs(x) > 11 && Math.abs(x) < 25 && Math.abs(z) < 35) continue;
+                if (Math.abs(z) > 11 && Math.abs(z) < 25 && Math.abs(x) < 35) continue;
 
                 const w = 2.5 + sr() * 5;
                 const d = 2.5 + sr() * 5;
                 const h = 3 + sr() * 18;
                 const matChoice = cityMats[Math.floor(sr() * cityMats.length)];
 
-                block(new THREE.BoxGeometry(w, h, d), matChoice, x, h / 2, z, cityGroup);
+                block(createCityBox(w, h, d), matChoice, x, h / 2, z, cityGroup);
 
-                // Window grid on taller buildings
+                // Window grid on taller buildings (inset windows)
                 if (h > 6) {
                     const windowRows = Math.floor(h / 2.5);
                     const windowCols = Math.floor(w / 1.5);
@@ -1436,11 +1675,17 @@
                             const wy = 1.5 + wr * 2.5;
                             if (wy > h - 1) continue;
                             const winF = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 1.4), windowBlueMat);
-                            winF.position.set(wx, wy, z + d / 2 + 0.02); cityGroup.add(winF);
+                            // Push slightly inset
+                            winF.position.set(wx, wy, z + d / 2 + 0.01); cityGroup.add(winF);
+
+                            // Framed ledge
+                            const ledge = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.05, 0.1), darkConcreteMat);
+                            ledge.position.set(wx, wy - 0.7, z + d / 2 + 0.04); cityGroup.add(ledge);
+
                             if (wc < Math.floor(d / 1.5)) {
                                 const winS = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 1.4), windowBlueMat);
                                 winS.rotation.y = Math.PI / 2;
-                                winS.position.set(x + w / 2 + 0.02, wy, z - d / 2 + 0.8 + wc * 1.4); cityGroup.add(winS);
+                                winS.position.set(x + w / 2 + 0.01, wy, z - d / 2 + 0.8 + wc * 1.4); cityGroup.add(winS);
                             }
                         }
                     }
@@ -1448,11 +1693,11 @@
 
                 // Rooftop details
                 if (sr() > 0.5) {
-                    block(new THREE.BoxGeometry(w + 0.4, 0.15, d + 0.4), darkConcreteMat, x, h + 0.08, z, cityGroup);
+                    block(createCityBox(w + 0.4, 0.15, d + 0.4), darkConcreteMat, x, h + 0.08, z, cityGroup);
                 }
                 if (sr() > 0.6 && h > 8) {
                     const acw = 0.6 + sr() * 0.8;
-                    block(new THREE.BoxGeometry(acw, 0.8, acw), steelMat, x + (sr() - 0.5) * w * 0.5, h + 0.5, z + (sr() - 0.5) * d * 0.5, cityGroup);
+                    block(createCityBox(acw, 0.8, acw), steelMat, x + (sr() - 0.5) * w * 0.5, h + 0.5, z + (sr() - 0.5) * d * 0.5, cityGroup);
                 }
                 if (sr() > 0.55) {
                     const h2 = h * (0.25 + sr() * 0.25);
@@ -2617,7 +2862,7 @@
             .to(annoLineMat.uniforms.uOpacity, { value: 0, duration: 0.1 }, "s6");
 
         // STEP 7: Cinematic Pan across the exterior
-        sTl.to(camera.position, { x: 17, y: 13, z: 40, duration: 1.2, ease: "power1.inOut" }, "s7")
+        sTl.to(camera.position, { x: 9, y: 13, z: 35, duration: 1.2, ease: "power1.inOut" }, "s7")
             .to(camTarget, { x: 12, y: 5, z: -5, duration: 1.2, ease: "power1.inOut" }, "s7");
 
 
