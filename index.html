@@ -209,6 +209,33 @@
             will-change: transform, opacity;
         }
 
+        .arc-text-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            pointer-events: none;
+        }
+
+        .arc-char {
+            display: inline-block;
+            font-family: 'Syne', sans-serif;
+            font-size: 4.5vw;
+            font-weight: 800;
+            color: #111;
+            text-transform: uppercase;
+            white-space: pre;
+            letter-spacing: 0.04em;
+            line-height: 1;
+            will-change: transform, opacity;
+        }
+
+        @media (max-width: 768px) {
+            .arc-char {
+                font-size: 10vw;
+            }
+        }
+
         @media (max-width: 768px) {
             .char-3d {
                 font-size: 12vw;
@@ -432,9 +459,19 @@
             </div>
         </div>
 
-        <div class="section" id="sec5d"></div>
+        <div class="section" id="sec5d">
+            <div class="arc-text-wrapper" id="arcText5d">CRAFTED DETAILS</div>
+        </div>
 
-        <div class="section align-center" id="sec6">
+        <div class="section align-left" id="sec6">
+            <div class="content-block">
+                <h2>Endless Horizons</h2>
+                <p>Architecture that transcends borders. A panoramic vision of life seamlessly woven into the tapestry
+                    of the world.</p>
+            </div>
+        </div>
+
+        <div class="section align-center" id="sec7">
             <div class="content-block" style="margin-top: -20vh;">
                 <h2>Build With Us</h2>
                 <a href="#" class="btn" style="background: #111;">Enter The Future</a>
@@ -565,8 +602,8 @@
             });
         }
 
-        // ADDED #sec5 to the loop
-        ['#sec3', '#sec4', '#sec5', '#sec6'].forEach(secId => {
+        // Animate text blocks for all main sections including the hall (#sec5c)
+        ['#sec3', '#sec4', '#sec5', '#sec5c', '#sec6', '#sec7'].forEach(secId => {
             const block = document.querySelector(`${secId} .content-block`);
             if (!block) return;
             const heading = block.querySelector('h2');
@@ -590,6 +627,57 @@
             }
             gsap.fromTo(block, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out", scrollTrigger: { trigger: block, start: "top 85%", end: "top 55%", scrub: 1 } });
         });
+
+        // --- SEC5D: Curved Arc Split-Text Reveal ---
+        const arcTextEl = document.getElementById('arcText5d');
+        if (arcTextEl) {
+            const arcContent = arcTextEl.textContent.trim();
+            arcTextEl.innerHTML = '';
+            const arcChars = [];
+            arcContent.split('').forEach(char => {
+                const span = document.createElement('span');
+                span.textContent = char === ' ' ? '\u00A0' : char;
+                span.className = 'arc-char';
+                arcTextEl.appendChild(span);
+                arcChars.push(span);
+            });
+
+            const total = arcChars.length;
+            // Set initial state: hidden, offset right with arc curve
+            arcChars.forEach((span, i) => {
+                const phase = i / total;
+                const curveY = Math.sin(phase * Math.PI) * 60;
+                gsap.set(span, {
+                    opacity: 0,
+                    x: 120 + (total - i) * 15,
+                    y: curveY,
+                    rotateZ: 8 - phase * 16,
+                    scale: 0.7
+                });
+            });
+
+            // Animate each char into place, scrubbed to scroll
+            const arcTl = gsap.timeline({
+                scrollTrigger: {
+                    trigger: '#sec5d',
+                    start: 'top 80%',
+                    end: 'bottom 80%',
+                    scrub: 1.5
+                }
+            });
+
+            arcChars.forEach((span, i) => {
+                arcTl.to(span, {
+                    opacity: 1,
+                    x: 0,
+                    y: 0,
+                    rotateZ: 0,
+                    scale: 1,
+                    duration: 0.6,
+                    ease: 'power3.out'
+                }, i * 0.06);
+            });
+        }
 
 
         /* ==========================================
@@ -1483,17 +1571,17 @@
         const metalAccentMat = new THREE.MeshPhysicalMaterial({ color: 0x888888, roughness: 0.15, metalness: 0.85, clearcoat: 0.5, transparent: true, opacity: 0 });
 
         const ROOM_Y = 5.2;
-        const roomLight = new THREE.PointLight(0xffecd0, 0, 25, 1.5);
+        const roomLight = new THREE.PointLight(0xffbc7a, 0, 25, 1.5);
         roomLight.position.set(0, ROOM_Y + 4.0, 0.5); roomLight.castShadow = true;
         roomLight.shadow.mapSize.set(1024, 1024); scene.add(roomLight);
-        const roomAmbient = new THREE.PointLight(0xfff5e6, 0, 20, 1.5);
+        const roomAmbient = new THREE.PointLight(0xffd199, 0, 20, 1.5);
         roomAmbient.position.set(-2, ROOM_Y + 3.5, -2); scene.add(roomAmbient);
-        const windowLight = new THREE.PointLight(0xfffff0, 0, 18, 1.8);
+        const windowLight = new THREE.PointLight(0xffe8c0, 0, 18, 1.8);
         windowLight.position.set(-6, ROOM_Y + 2.5, 0); scene.add(windowLight);
-        const lampSpot = new THREE.SpotLight(0xffe8b0, 0, 8, Math.PI / 4, 0.6, 1.5);
+        const lampSpot = new THREE.SpotLight(0xffa840, 0, 8, Math.PI / 4, 0.6, 1.5);
         lampSpot.position.set(-3.4, ROOM_Y + 2.8, -1.5);
         lampSpot.target.position.set(-3.4, ROOM_Y, -1.5); scene.add(lampSpot); scene.add(lampSpot.target);
-        const bounceFill = new THREE.PointLight(0xffe0c0, 0, 12, 2);
+        const bounceFill = new THREE.PointLight(0xffb870, 0, 12, 2);
         bounceFill.position.set(1, ROOM_Y + 0.5, 1); scene.add(bounceFill);
 
         const allRoomMats = [
@@ -1615,11 +1703,18 @@
 
         // ---- PIECE 4: Coffee Table ----
         createFurniturePiece((g) => {
-            // Table top
-            roomBlock(new THREE.BoxGeometry(1.8, 0.06, 1.0), tableMat, 0.5, 0.62, 0, g);
-            roomBlock(new THREE.BoxGeometry(1.84, 0.02, 1.04), chairFrameMat, 0.5, 0.59, 0, g);
+            // Table top — elegant organic oval
+            const tableTopGeo = new THREE.CylinderGeometry(1, 1, 0.06, 32);
+            tableTopGeo.scale(1.1, 1, 0.65); // Scale into oval
+            const top = roomBlock(tableTopGeo, tableMat, 0.5, 0.62, 0, g);
+            // Decorative metal rim
+            const rimGeo = new THREE.TorusGeometry(1, 0.012, 8, 48);
+            rimGeo.scale(1.1, 0.65, 1);
+            const rim = roomBlock(rimGeo, chairFrameMat, 0.5, 0.62, 0, g);
+            rim.rotation.x = Math.PI / 2;
+
             // Hairpin legs — cylindrical rods
-            const rodGeo = new THREE.CylinderGeometry(0.015, 0.015, 0.58, 8);
+            const rodGeo = new THREE.CylinderGeometry(0.012, 0.012, 0.58, 8);
             [[-0.6, -0.35], [-0.6, 0.35], [0.6, -0.35], [0.6, 0.35]].forEach(([lx, lz]) => {
                 const l1 = roomBlock(rodGeo, chairFrameMat, 0.5 + lx, 0.3, lz, g);
                 l1.rotation.z = lx > 0 ? 0.12 : -0.12;
@@ -1682,10 +1777,22 @@
 
         // ---- PIECE 7: Floor Lamp ----
         createFurniturePiece((g) => {
-            // Tripod legs — smoother cylinders
-            roomBlockR(new THREE.CylinderGeometry(0.015, 0.025, 2.1, 12), lampBaseMat, -3.55, 1.05, -1.35, 0, 0, 0.12, g);
-            roomBlockR(new THREE.CylinderGeometry(0.015, 0.025, 2.1, 12), lampBaseMat, -3.2, 1.05, -1.7, 0, -1.0, -0.12, g);
-            roomBlockR(new THREE.CylinderGeometry(0.015, 0.025, 2.1, 12), lampBaseMat, -3.2, 1.05, -1.2, 0, 1.0, -0.12, g);
+            // Tripod legs — pivoting from exact top center with correct Euler order to avoid floating intersections
+            const apexX = -3.35, apexY = 2.05, apexZ = -1.45;
+            const legLen = 2.15;
+            const spreadAngle = 0.18; // outward angle of legs
+            for (let i = 0; i < 3; i++) {
+                const angle = (i / 3) * Math.PI * 2 + Math.PI / 2;
+                const pivot = new THREE.Group();
+                pivot.position.set(apexX, apexY, apexZ);
+                // Important: order YXZ ensures it points its local X outward before sweeping around Y
+                pivot.rotation.order = 'YXZ';
+                pivot.rotation.y = angle;
+                pivot.rotation.x = spreadAngle;
+                g.add(pivot);
+                // leg drawn downwards from pivot
+                roomBlock(new THREE.CylinderGeometry(0.012, 0.022, legLen, 16), lampBaseMat, 0, -legLen / 2, 0, pivot);
+            }
             // Central stem
             roomBlock(new THREE.CylinderGeometry(0.012, 0.012, 0.5, 12), lampBaseMat, -3.35, 2.3, -1.45, g);
             // Shade — LatheGeometry for smooth tapered shape
@@ -1741,6 +1848,15 @@
             roomBlock(potGeo, plantPotMat, -3.8, 0.08, 2.5, g);
             // Soil — dark disc on top
             roomBlock(new THREE.CylinderGeometry(0.23, 0.23, 0.02, 24), sofaDarkMat, -3.8, 0.52, 2.5, g);
+            // Moss detail — cluster of tiny organic spheres on soil
+            for (let m = 0; m < 80; m++) {
+                const ma = Math.random() * Math.PI * 2;
+                const mr = Math.random() * 0.21;
+                const ms = 0.01 + Math.random() * 0.025;
+                const mossGeo = new THREE.SphereGeometry(ms, 8, 6);
+                const moss = roomBlock(mossGeo, m % 3 === 0 ? plantLeafDarkMat : plantLeafMat, -3.8 + Math.cos(ma) * mr, 0.53 + Math.random() * 0.01, 2.5 + Math.sin(ma) * mr, g);
+                moss.scale.set(1, 0.5 + Math.random() * 0.5, 1);
+            }
 
             // True organic stem-and-leaf generation (Monstera style)
             const leafCount = 25;
@@ -1999,11 +2115,11 @@
         // =============================================
         const HALL_Z = 10; // z-offset for the hall
 
-        // Hall-specific lighting
-        const hallLight = new THREE.PointLight(0xffecd0, 0, 25, 1.5);
+        // Hall-specific lighting (Warm)
+        const hallLight = new THREE.PointLight(0xffbc7a, 0, 25, 1.5);
         hallLight.position.set(0, ROOM_Y + 4.0, HALL_Z); hallLight.castShadow = true;
         hallLight.shadow.mapSize.set(1024, 1024); scene.add(hallLight);
-        const hallAmbient = new THREE.PointLight(0xfff5e6, 0, 20, 1.5);
+        const hallAmbient = new THREE.PointLight(0xffd199, 0, 20, 1.5);
         hallAmbient.position.set(-2, ROOM_Y + 3.5, HALL_Z - 2); scene.add(hallAmbient);
 
         // Hall pendant light material
@@ -2189,9 +2305,14 @@
         createFurniturePiece((g) => {
             const Hz = HALL_Z;
             const sx = -3.5, sz = Hz + 3.6;
-            // Sideboard body
-            roomBlock(new THREE.BoxGeometry(2.2, 0.8, 0.45), tvConsoleMat, sx, 0.48, sz, g);
+            // Sideboard body with rounded leading edge
+            roomBlock(new THREE.BoxGeometry(2.1, 0.75, 0.4), tvConsoleMat, sx, 0.48, sz, g);
             roomBlock(new THREE.BoxGeometry(2.24, 0.04, 0.5), tableMat, sx, 0.9, sz, g);
+            // Rounded leading edge for sideboard
+            const sideTopEdgeGeo = new THREE.CylinderGeometry(0.03, 0.03, 2.2, 16, 1, false, 0, Math.PI);
+            const sTopEdge = roomBlock(sideTopEdgeGeo, tvConsoleMat, sx, 0.855, sz - 0.22, g);
+            sTopEdge.rotation.z = Math.PI / 2;
+            sTopEdge.rotation.x = -Math.PI / 2;
             // Doors with rounded handles
             roomBlock(new THREE.BoxGeometry(1.0, 0.6, 0.02), tvConsoleMat, sx - 0.5, 0.48, sz - 0.21, g);
             roomBlock(new THREE.BoxGeometry(1.0, 0.6, 0.02), tvConsoleMat, sx + 0.5, 0.48, sz - 0.21, g);
@@ -2484,6 +2605,10 @@
 
         sTl.to(sketchLineMat.uniforms.uOpacity, { value: 0, duration: 0.1 }, "s6")
             .to(annoLineMat.uniforms.uOpacity, { value: 0, duration: 0.1 }, "s6");
+
+        // STEP 7: Cinematic Pan across the exterior
+        sTl.to(camera.position, { x: 17, y: 13, z: 40, duration: 1.2, ease: "power1.inOut" }, "s7")
+            .to(camTarget, { x: 12, y: 5, z: -5, duration: 1.2, ease: "power1.inOut" }, "s7");
 
 
         /* ==========================================
