@@ -1541,19 +1541,19 @@
         const wallPaintTex = createWallPaintTex();
 
         const wallMat = new THREE.MeshPhysicalMaterial({ map: wallPaintTex, roughness: 0.92, clearcoat: 0.05, clearcoatRoughness: 0.8, normalMap: concreteNormal, normalScale: new THREE.Vector2(0.15, 0.15), transparent: true, opacity: 0 });
-        const floorWoodMat = new THREE.MeshPhysicalMaterial({ map: plankFloorTex, roughness: 0.45, normalMap: concreteNormal, normalScale: new THREE.Vector2(0.3, 0.3), clearcoat: 0.3, clearcoatRoughness: 0.4, transparent: true, opacity: 0 });
+        const floorWoodMat = new THREE.MeshPhysicalMaterial({ map: plankFloorTex, roughness: 0.25, normalMap: concreteNormal, normalScale: new THREE.Vector2(0.3, 0.3), clearcoat: 0.6, clearcoatRoughness: 0.2, transparent: true, opacity: 0 });
         const sofaMat = new THREE.MeshPhysicalMaterial({ color: 0xa85c42, roughness: 0.8, clearcoat: 0.1, clearcoatRoughness: 0.9, sheen: new THREE.Color(0xdcaea0), normalMap: fabricNrm, normalScale: new THREE.Vector2(0.6, 0.6), transparent: true, opacity: 0 });
         const sofaDarkMat = new THREE.MeshPhysicalMaterial({ color: 0x8a4a35, roughness: 0.85, clearcoat: 0.1, clearcoatRoughness: 0.9, sheen: new THREE.Color(0xb27763), normalMap: fabricNrm, normalScale: new THREE.Vector2(0.4, 0.4), transparent: true, opacity: 0 });
         const cushionMat = new THREE.MeshPhysicalMaterial({ color: 0xf0e6d8, roughness: 0.7, clearcoat: 0.05, clearcoatRoughness: 0.9, sheen: new THREE.Color(0xffffff), normalMap: fabricNrm, normalScale: new THREE.Vector2(0.3, 0.3), transparent: true, opacity: 0 });
         const cushionAccentMat = new THREE.MeshPhysicalMaterial({ color: 0xd4a87a, roughness: 0.75, clearcoat: 0.05, clearcoatRoughness: 0.9, sheen: new THREE.Color(0xffe6cc), normalMap: fabricNrm, normalScale: new THREE.Vector2(0.3, 0.3), transparent: true, opacity: 0 });
         const chairMat = new THREE.MeshPhysicalMaterial({ color: 0x4a7a6a, roughness: 0.8, clearcoat: 0.05, clearcoatRoughness: 0.9, sheen: new THREE.Color(0x8bc0ae), normalMap: fabricNrm, normalScale: new THREE.Vector2(0.5, 0.5), transparent: true, opacity: 0 });
         const chairFrameMat = new THREE.MeshPhysicalMaterial({ color: 0xc8a870, roughness: 0.35, metalness: 0.3, clearcoat: 0.2, transparent: true, opacity: 0 });
-        const tableMat = new THREE.MeshPhysicalMaterial({ map: woodColor, roughness: 0.3, clearcoat: 0.5, clearcoatRoughness: 0.2, transparent: true, opacity: 0 });
+        const tableMat = new THREE.MeshPhysicalMaterial({ map: woodColor, roughness: 0.15, clearcoat: 0.8, clearcoatRoughness: 0.1, transparent: true, opacity: 0 });
         const lampShadeMat = new THREE.MeshPhysicalMaterial({ color: 0xfff8e8, roughness: 0.6, transmission: 0.4, emissive: 0xffe0a0, emissiveIntensity: 0, transparent: true, opacity: 0, side: THREE.DoubleSide });
         const lampBaseMat = new THREE.MeshPhysicalMaterial({ color: 0xc8a870, roughness: 0.3, metalness: 0.35, clearcoat: 0.3, transparent: true, opacity: 0 });
         const tvScreenMat = new THREE.MeshPhysicalMaterial({ color: 0x080808, roughness: 0.02, metalness: 0.6, clearcoat: 1.0, clearcoatRoughness: 0.05, transparent: true, opacity: 0 });
         const tvBodyMat = new THREE.MeshPhysicalMaterial({ color: 0x1a1a1a, roughness: 0.3, metalness: 0.5, clearcoat: 0.5, clearcoatRoughness: 0.5, transparent: true, opacity: 0 });
-        const tvConsoleMat = new THREE.MeshPhysicalMaterial({ map: woodColor, color: 0x705030, roughness: 0.4, clearcoat: 0.3, clearcoatRoughness: 0.3, transparent: true, opacity: 0 });
+        const tvConsoleMat = new THREE.MeshPhysicalMaterial({ map: woodColor, color: 0x705030, roughness: 0.2, clearcoat: 0.6, clearcoatRoughness: 0.1, transparent: true, opacity: 0 });
         const rugMat = new THREE.MeshPhysicalMaterial({ map: rugTex, roughness: 1.0, sheen: new THREE.Color(0xffffff), normalMap: fabricNrm, normalScale: new THREE.Vector2(0.2, 0.2), transparent: true, opacity: 0 });
         const plantPotMat = new THREE.MeshPhysicalMaterial({ color: 0xd8cfc0, roughness: 0.7, clearcoat: 0.15, transparent: true, opacity: 0 });
         const plantLeafMat = new THREE.MeshPhysicalMaterial({ color: 0x3d7a30, roughness: 0.4, clearcoat: 0.2, clearcoatRoughness: 0.3, transparent: true, opacity: 0, side: THREE.DoubleSide });
@@ -2121,10 +2121,18 @@
         hallLight.shadow.mapSize.set(1024, 1024); scene.add(hallLight);
         const hallAmbient = new THREE.PointLight(0xffd199, 0, 20, 1.5);
         hallAmbient.position.set(-2, ROOM_Y + 3.5, HALL_Z - 2); scene.add(hallAmbient);
+        const hallSpot = new THREE.SpotLight(0xffb56b, 0, 12, Math.PI / 4.5, 0.5, 1.2);
+        hallSpot.position.set(0, ROOM_Y + 3.8, HALL_Z);
+        hallSpot.target.position.set(0, ROOM_Y + 0.8, HALL_Z);
+        hallSpot.castShadow = true; hallSpot.shadow.bias = -0.0001;
+        scene.add(hallSpot); scene.add(hallSpot.target);
 
         // Hall pendant light material
         const hallPendantMat = new THREE.MeshStandardMaterial({
-            color: 0xfff8e0, roughness: 0.4, emissive: 0xffe0a0, emissiveIntensity: 0,
+            // Warm Amber Light
+            color: 0xffaa55, roughness: 0.4, emissive: 0xff7711, emissiveIntensity: 0,
+            // White Light (Uncomment to use)
+            // color: 0xfff8e0, roughness: 0.4, emissive: 0xffe0a0, emissiveIntensity: 0,
             transparent: true, opacity: 0, side: THREE.DoubleSide
         });
         const hallPendantFrameMat = new THREE.MeshPhysicalMaterial({
@@ -2499,7 +2507,7 @@
         }
 
         sTl.to(lampShadeMat, { emissiveIntensity: 1.0, duration: 0.2 }, ">-0.05");
-        sTl.to(lampSpot, { intensity: 3.0, duration: 0.2 }, "<");
+        sTl.to(lampSpot, { intensity: 5.0, duration: 0.2 }, "<");
         sTl.to(bounceFill, { intensity: 1.5, duration: 0.2 }, "<");
 
         // STEP 5: Slight pull back interior
@@ -2514,7 +2522,8 @@
         hallFurniturePieces[0].mats.forEach(m => sTl.to(m, { opacity: 1, duration: 0.5 }, "s5b"));
         // Hall lighting
         sTl.to(hallLight, { intensity: 6.0, duration: 0.5 }, "s5b")
-            .to(hallAmbient, { intensity: 4.0, duration: 0.5 }, "s5b");
+            .to(hallAmbient, { intensity: 4.0, duration: 0.5 }, "s5b")
+            .to(hallSpot, { intensity: 8.0, duration: 0.5 }, "s5b");
         sTl.to(windowGlowMat, { emissiveIntensity: 1.5, duration: 0.4 }, "s5b");
 
         // STEP 5c: Hall furniture assembles — camera orbits to side
@@ -2597,6 +2606,7 @@
             .to(windowGlowMat, { emissiveIntensity: 0, duration: 0.5 }, "s6")
             .to(hallLight, { intensity: 0, duration: 0.5 }, "s6")
             .to(hallAmbient, { intensity: 0, duration: 0.5 }, "s6")
+            .to(hallSpot, { intensity: 0, duration: 0.5 }, "s6")
             .to(hallPendantMat, { emissiveIntensity: 0, duration: 0.5 }, "s6");
 
         sTl.to(sunLight, { intensity: 5.5, duration: 0.8 }, "s6")
