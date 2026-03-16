@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CREO | Hyperrealistic Architecture</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <script src="https://unpkg.com/lenis@1.1.20/dist/lenis.min.js"></script>
+    <style>
+        html.lenis, html.lenis body { height: auto; }
+        .lenis.lenis-smooth { scroll-behavior: auto !important; }
+        .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+        .lenis.lenis-stopped { overflow: hidden; }
+        .lenis.lenis-scrolling iframe { pointer-events: none; }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: #E8E5DF; /* Soft warm beige matched to reference */
+            color: #111;
+            font-family: 'Syne', sans-serif;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        #webgl-canvas {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 0; pointer-events: none;
+        }
+
+        .scroll-container { position: relative; z-index: 10; }
+
+        nav {
+            position: absolute; top: 0; left: 0; width: 100%;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem 5rem; background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2); z-index: 1000;
+        }
+        .logo { font-size: 1.2rem; font-weight: 800; text-decoration: none; color: #111; letter-spacing: 4px; text-transform: uppercase; }
+        .nav-links { display: flex; gap: 3rem; list-style: none; }
+        .nav-links li { font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; color: rgba(0, 0, 0, 0.5); cursor: pointer; position: relative; }
+        .nav-cta { padding: 0.9rem 2.2rem; background: #111; color: #fff; text-decoration: none; border-radius: 100px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; }
+
+        .section { height: 100vh; width: 100vw; display: flex; align-items: center; padding: 0 5vw; position: relative; }
+
+        .content-block {
+            max-width: 650px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            padding: 3.5rem; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.04); opacity: 0; transform: translateY(30px);
+            background: rgba(242, 240, 236, 0.7); 
+        }
+
+        #sec2 { display: flex; align-items: center; justify-content: center; perspective: 800px; overflow: hidden; }
+        .text-3d-wrapper { position: relative; transform-style: preserve-3d; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; max-width: 90vw; }
+        .char-3d { display: inline-block; font-size: 5vw; font-weight: 800; color: #111; text-transform: uppercase; white-space: pre; transform-style: preserve-3d; }
+
+        h1, h2 { font-size: 3.5rem; font-weight: 800; line-height: 1.05; margin-bottom: 1.5rem; letter-spacing: -1px; }
+        p { font-size: 1.15rem; color: #555; line-height: 1.6; margin-bottom: 2.5rem; font-weight: 600;}
+        .btn { display: inline-block; padding: 1.2rem 2.5rem; background: #C0955B; color: #fff; text-decoration: none; border-radius: 50px; font-weight: 600; }
+
+        .align-right { justify-content: flex-end; } .align-left { justify-content: flex-start; } .align-center { justify-content: center; text-align: center; }
+
+        #loader {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #E8E5DF; z-index: 999; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1rem;
+        }
+        #loader span { font-weight: 800; font-size: 2rem; color: #111; letter-spacing: 3px; }
+        #loader .loader-bar { width: 120px; height: 2px; background: rgba(0, 0, 0, 0.1); overflow: hidden; }
+        #loader .loader-bar-fill { width: 0%; height: 100%; background: #111; }
+    </style>
+</head>
+
+<body>
+
+    <div id="loader">
+        <span>GENERATING TEXTURES...</span>
+        <div class="loader-bar"><div class="loader-bar-fill"></div></div>
+    </div>
+
+    <canvas id="webgl-canvas"></canvas>
+
+    <nav>
+        <a href="#" class="logo">CREO</a>
+        <ul class="nav-links">
+            <li>Vision</li>
+            <li>Engineering</li>
+            <li>Construct</li>
+        </ul>
+        <a href="#" class="nav-cta">Start project</a>
+    </nav>
+
+    <div class="scroll-container">
+        <div class="section align-left" id="sec1">
+            <div class="content-block intro-block">
+                <h1>Precision<br>Engineering</h1>
+                <p>It starts with absolute precision. We translate rigorous architectural drafting into high-fidelity habitats.</p>
+                <a href="#" class="btn">Initiate Project</a>
+            </div>
+        </div>
+
+        <div class="section" id="sec2"><div class="text-3d-wrapper" id="text3d">TACTILE <br> REALITY</div></div>
+
+        <div class="section align-left" id="sec3">
+            <div class="content-block">
+                <h2>Urban Scale</h2>
+                <p>Seamlessly integrating bold, futuristic geometry into the existing urban landscape with perfect scale.</p>
+            </div>
+        </div>
+
+        <div class="section align-right" id="sec4">
+            <div class="content-block">
+                <h2>Interior Living</h2>
+                <p>Step inside. Curated materials, warm light, and purposeful design converge into a living experience.</p>
+            </div>
+        </div>
+
+        <div class="section align-left" id="sec5">
+            <div class="content-block">
+                <h2>The Final Vision</h2>
+                <p>Every detail, inside and out, executed with uncompromising precision.</p>
+            </div>
+        </div>
+
+        <div class="section align-center" id="sec6">
+            <div class="content-block" style="margin-top: -20vh;">
+                <h2>Build With Us</h2>
+                <a href="#" class="btn" style="background: #111;">Enter The Future</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/environments/RoomEnvironment.js"></script>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+
+        const lenis = new Lenis({ duration: 1.7, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
+        lenis.on('scroll', ScrollTrigger.update);
+        gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+        gsap.ticker.lagSmoothing(0);
+
+        const text3d = document.getElementById('text3d');
+        const textContent = text3d ? text3d.textContent.trim() : '';
+        let chars = [];
+        if (text3d) {
+            text3d.innerHTML = '';
+            const total = textContent.length;
+            chars = textContent.split('').map((char, i) => {
+                const span = document.createElement('span');
+                span.textContent = char === ' ' ? '\u00A0' : char; span.className = 'char-3d'; text3d.appendChild(span);
+                const depthOffset = (i / total) * 400;
+                gsap.set(span, { opacity: 0, z: -1200 - depthOffset, y: 200 + (i * 8), rotateX: -90, transformOrigin: '50% 100%' });
+                return span;
+            });
+        }
+
+        const sec1Block = document.querySelector('#sec1 .content-block');
+        if (sec1Block) {
+            const sec1H = sec1Block.querySelector('h1');
+            const lines = sec1H.innerHTML.split('<br>');
+            sec1H.innerHTML = lines.map(l => `<span style="display:block; overflow:hidden;"><span class="line-inner" style="display:block;">${l.trim().split('').map(char => `<span class="hero-char" style="display:inline-block; transform-origin: 50% 100%;">${char === ' ' ? '&nbsp;' : char}</span>`).join('')}</span></span>`).join('');
+            gsap.set(sec1H.querySelectorAll('.hero-char'), { y: 80, opacity: 0, scale: 0.5, rotateX: -30 });
+        }
+
+        /* ==========================================
+           1. HYPERREALISTIC PROCEDURAL TEXTURES (CANVAS API)
+           ========================================== */
+        
+        // 1. Clean Isometric Oak Floor (Matched to reference)
+        function createCleanWoodFloor() {
+            const s = 1024, c = document.createElement('canvas'); c.width = s; c.height = s;
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#DAB894'; ctx.fillRect(0, 0, s, s); // Base warm oak
+            const plankW = s / 8;
+            for (let col = 0; col < 8; col++) {
+                const x = col * plankW;
+                // Plank Gap
+                ctx.fillStyle = '#A37C5B'; ctx.fillRect(x, 0, 3, s);
+                // Clean straight grain
+                for (let i = 0; i < 150; i++) {
+                    ctx.fillStyle = `rgba(180, 140, 100, ${Math.random() * 0.15})`;
+                    ctx.fillRect(x + Math.random() * plankW, 0, Math.random() * 2 + 1, s);
+                }
+                // Horizontal cuts (staggered)
+                const yCut = (col % 2 === 0) ? s * 0.3 : s * 0.7;
+                ctx.fillRect(x, yCut, plankW, 3);
+            }
+            const tex = new THREE.CanvasTexture(c); tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(2, 2); return tex;
+        }
+
+        // 2. Ribbed Acoustic Wood Panel (From Reference Image 2)
+        function createRibbedPanel() {
+            const s = 512, c = document.createElement('canvas'); c.width = s; c.height = s;
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#2A2623'; ctx.fillRect(0, 0, s, s); // Dark backing
+            const slatW = 16, gapW = 8;
+            for (let x = 0; x < s; x += (slatW + gapW)) {
+                // Wooden slat
+                ctx.fillStyle = '#423B33'; ctx.fillRect(x, 0, slatW, s);
+                // Slat highlight (edge lighting)
+                ctx.fillStyle = '#5A5148'; ctx.fillRect(x, 0, 2, s);
+                // Slat shadow
+                ctx.fillStyle = '#1A1715'; ctx.fillRect(x + slatW - 2, 0, 2, s);
+            }
+            const tex = new THREE.CanvasTexture(c); tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(4, 1); return tex;
+        }
+
+        // 3. Soft Woven Fabric Bump Map (For Sofas/Pillows to not look like plastic)
+        function createWovenFabricNormal() {
+            const s = 512, c = document.createElement('canvas'); c.width = s; c.height = s;
+            const ctx = c.getContext('2d'); const img = ctx.createImageData(s, s);
+            for (let y = 0; y < s; y++) {
+                for (let x = 0; x < s; x++) {
+                    const i = (y * s + x) * 4;
+                    // Crosshatch math
+                    const weave = (Math.sin(x * 0.5) * Math.sin(y * 0.5)) * 0.5 + 0.5;
+                    const noise = Math.random() * 0.2;
+                    const val = (weave + noise) * 255;
+                    img.data[i] = val; img.data[i + 1] = val; img.data[i + 2] = 255; img.data[i + 3] = 255;
+                }
+            }
+            ctx.putImageData(img, 0, 0);
+            const tex = new THREE.CanvasTexture(c); tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(10, 10); return tex;
+        }
+
+        // 4. Matte Wall Texture (Subtle stipple)
+        function createMatteWall() {
+            const s = 512, c = document.createElement('canvas'); c.width = s; c.height = s;
+            const ctx = c.getContext('2d'); const img = ctx.createImageData(s, s);
+            for (let i = 0; i < img.data.length; i += 4) {
+                const noise = (Math.random() - 0.5) * 8;
+                img.data[i] = 244 + noise; img.data[i + 1] = 241 + noise; img.data[i + 2] = 235 + noise; img.data[i + 3] = 255; // #F4F1EB base
+            }
+            ctx.putImageData(img, 0, 0);
+            const tex = new THREE.CanvasTexture(c); return tex;
+        }
+
+        const oakFloorTex = createCleanWoodFloor();
+        const ribbedTex = createRibbedPanel();
+        const fabricNormal = createWovenFabricNormal();
+        const matteWallTex = createMatteWall();
+
+        /* ==========================================
+           2. SCENE, RENDERER & SOFT STUDIO LIGHTING
+           ========================================== */
+        const canvas = document.querySelector('#webgl-canvas');
+        const scene = new THREE.Scene();
+        const bgColor = '#E8E5DF'; // Warm beige matched to reference
+        scene.background = new THREE.Color(bgColor);
+        scene.fog = new THREE.Fog(bgColor, 30, 100);
+
+        const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.1, 300);
+        
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        
+        // Soft shadows and high exposure for that cozy aesthetic
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.3; // Brighter exposure
+        renderer.outputEncoding = THREE.sRGBEncoding;
+
+        // HDRI Generator for realistic reflections
+        const pmremGenerator = new THREE.PMREMGenerator(renderer);
+        pmremGenerator.compileEquirectangularShader();
+        scene.environment = pmremGenerator.fromScene(new THREE.RoomEnvironment(), 0.04).texture;
+
+        // Soft Hemisphere Light (Sky is warm white, ground is soft warm beige)
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0xd4ccba, 1.0);
+        scene.add(hemiLight);
+
+        // Main Sun Light (Casts soft shadows)
+        const sunLight = new THREE.DirectionalLight(0xfff7e6, 0); 
+        sunLight.position.set(30, 50, 40); // Angled nicely for isometric
+        sunLight.castShadow = true;
+        sunLight.shadow.mapSize.width = 2048;
+        sunLight.shadow.mapSize.height = 2048;
+        sunLight.shadow.camera.near = 0.5;
+        sunLight.shadow.camera.far = 150;
+        sunLight.shadow.camera.left = -30;
+        sunLight.shadow.camera.right = 30;
+        sunLight.shadow.camera.top = 30;
+        sunLight.shadow.camera.bottom = -30;
+        sunLight.shadow.bias = -0.001; 
+        scene.add(sunLight);
+
+        // Soft fill light from the opposite side
+        const fillLight = new THREE.DirectionalLight(0xdde5ed, 0);
+        fillLight.position.set(-30, 20, -40);
+        scene.add(fillLight);
+
+        /* ==========================================
+           3. HYPERREALISTIC MATERIALS (Matched to Reference)
+           ========================================== */
+
+        // Walls (Matte, off-white, high roughness)
+        const wallMat = new THREE.MeshPhysicalMaterial({ map: matteWallTex, roughness: 1.0, metalness: 0.0, clearcoat: 0.0, transparent: true, opacity: 0 });
+        
+        // Floor (Warm Oak, slight polish)
+        const floorWoodMat = new THREE.MeshPhysicalMaterial({ map: oakFloorTex, roughness: 0.35, metalness: 0.0, clearcoat: 0.4, clearcoatRoughness: 0.3, transparent: true, opacity: 0 });
+        
+        // Ribbed Accent Wall (Dark wood)
+        const ribbedWallMat = new THREE.MeshPhysicalMaterial({ map: ribbedTex, roughness: 0.6, metalness: 0.1, clearcoat: 0.1, transparent: true, opacity: 0 });
+
+        // Sofa (Off-white soft fabric)
+        const sofaMat = new THREE.MeshPhysicalMaterial({ color: 0xECEAE4, normalMap: fabricNormal, roughness: 1.0, metalness: 0.0, clearcoat: 0.0, transparent: true, opacity: 0 });
+        
+        // Cushions (Mustard Yellow)
+        const cushionYellowMat = new THREE.MeshPhysicalMaterial({ color: 0xDCA73A, normalMap: fabricNormal, roughness: 1.0, metalness: 0.0, transparent: true, opacity: 0 });
+        const cushionGreenMat = new THREE.MeshPhysicalMaterial({ color: 0x5C6B5A, normalMap: fabricNormal, roughness: 1.0, metalness: 0.0, transparent: true, opacity: 0 });
+
+        // Dark Wood Furniture (Coffee table, trim)
+        const darkWoodMat = new THREE.MeshPhysicalMaterial({ color: 0x3A332C, roughness: 0.5, metalness: 0.1, clearcoat: 0.3, transparent: true, opacity: 0 });
+        
+        // Glass (Coffee table top, windows)
+        const glassMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.0, metalness: 0.1, transmission: 0.95, thickness: 0.1, ior: 1.5, transparent: true, opacity: 0 });
+        
+        // Plants
+        const potMat = new THREE.MeshPhysicalMaterial({ color: 0x2A2A2A, roughness: 0.7, clearcoat: 0.1, transparent: true, opacity: 0 });
+        const leafMat = new THREE.MeshPhysicalMaterial({ color: 0x4A6B44, roughness: 0.6, clearcoat: 0.2, side: THREE.DoubleSide, transparent: true, opacity: 0 });
+        
+        // Frames / Accents
+        const blackMetalMat = new THREE.MeshPhysicalMaterial({ color: 0x111111, roughness: 0.2, metalness: 0.8, clearcoat: 0.5, transparent: true, opacity: 0 });
+        const goldMetalMat = new THREE.MeshPhysicalMaterial({ color: 0xD4AF37, roughness: 0.2, metalness: 1.0, clearcoat: 0.8, transparent: true, opacity: 0 });
+
+        const allRoomMats = [wallMat, floorWoodMat, ribbedWallMat, sofaMat, cushionYellowMat, cushionGreenMat, darkWoodMat, glassMat, potMat, leafMat, blackMetalMat, goldMetalMat];
+
+
+        /* ==========================================
+           4. PROCEDURAL ROOM CONSTRUCTION
+           (Built to mimic the layout of Reference Image 2)
+           ========================================== */
+        const roomGroup = new THREE.Group();
+        const ROOM_Y = 5.2;
+        roomGroup.position.set(0, ROOM_Y, 0); 
+        scene.add(roomGroup);
+
+        function roomBlock(geo, mat, x, y, z, parent) {
+            const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z);
+            m.castShadow = true; m.receiveShadow = true; parent.add(m); return m;
+        }
+
+        function buildCozyIsometricRoom() {
+            // 1. Room Shell
+            roomBlock(new THREE.BoxGeometry(10, 0.2, 10), floorWoodMat, 0, -0.1, 0, roomGroup); // Floor
+            roomBlock(new THREE.BoxGeometry(10, 5, 0.2), wallMat, 0, 2.5, -5.1, roomGroup); // Back wall
+            roomBlock(new THREE.BoxGeometry(0.2, 5, 10), wallMat, -5.1, 2.5, 0, roomGroup); // Left wall
+
+            // Baseboards
+            roomBlock(new THREE.BoxGeometry(10, 0.15, 0.05), wallMat, 0, 0.075, -4.95, roomGroup);
+            roomBlock(new THREE.BoxGeometry(0.05, 0.15, 10), wallMat, -4.95, 0.075, 0, roomGroup);
+
+            // 2. Ribbed Accent Wall Panel (Left Side)
+            roomBlock(new THREE.BoxGeometry(0.3, 5, 3), ribbedWallMat, -4.9, 2.5, -3.5, roomGroup);
+            
+            // Mirror on Ribbed Wall
+            roomBlock(new THREE.BoxGeometry(0.35, 3, 1.2), blackMetalMat, -4.8, 2.2, -3.5, roomGroup);
+            roomBlock(new THREE.BoxGeometry(0.38, 2.9, 1.1), glassMat, -4.8, 2.2, -3.5, roomGroup);
+
+            // 3. Wall Art (Back Wall)
+            roomBlock(new THREE.BoxGeometry(1.2, 1.6, 0.1), blackMetalMat, -2, 2.8, -5, roomGroup);
+            roomBlock(new THREE.BoxGeometry(1.1, 1.5, 0.12), wallMat, -2, 2.8, -5, roomGroup); // Canvas
+            
+            roomBlock(new THREE.BoxGeometry(1.2, 1.6, 0.1), blackMetalMat, 0, 2.8, -5, roomGroup);
+            roomBlock(new THREE.BoxGeometry(1.1, 1.5, 0.12), cushionGreenMat, 0, 2.8, -5, roomGroup); 
+            
+            roomBlock(new THREE.BoxGeometry(1.2, 1.6, 0.1), blackMetalMat, 2, 2.8, -5, roomGroup);
+            roomBlock(new THREE.BoxGeometry(1.1, 1.5, 0.12), wallMat, 2, 2.8, -5, roomGroup); 
+
+            // Wall Trim / Railing under art
+            roomBlock(new THREE.BoxGeometry(8, 0.05, 0.1), blackMetalMat, 1, 1.6, -5, roomGroup);
+
+            // 4. L-Shaped Sofa (Off-white)
+            // Main body
+            roomBlock(new THREE.BoxGeometry(4.5, 0.4, 1.8), sofaMat, -0.5, 0.4, -2.5, roomGroup);
+            // Chaise extension
+            roomBlock(new THREE.BoxGeometry(1.8, 0.4, 2.5), sofaMat, 0.85, 0.4, -0.35, roomGroup);
+            // Backrest
+            roomBlock(new THREE.BoxGeometry(4.5, 0.8, 0.4), sofaMat, -0.5, 1.0, -3.2, roomGroup);
+            // Armrest
+            roomBlock(new THREE.BoxGeometry(0.4, 0.6, 1.8), sofaMat, -2.55, 0.9, -2.5, roomGroup);
+            
+            // Wooden Sofa Legs
+            roomBlock(new THREE.CylinderGeometry(0.04, 0.02, 0.2, 8), darkWoodMat, -2.5, 0.1, -1.8, roomGroup);
+            roomBlock(new THREE.CylinderGeometry(0.04, 0.02, 0.2, 8), darkWoodMat, 1.5, 0.1, -1.8, roomGroup);
+            roomBlock(new THREE.CylinderGeometry(0.04, 0.02, 0.2, 8), darkWoodMat, 1.5, 0.1, 0.7, roomGroup);
+
+            // Mustard Yellow Pillows
+            const p1 = roomBlock(new THREE.BoxGeometry(0.6, 0.5, 0.15), cushionYellowMat, -1.0, 0.85, -2.9, roomGroup);
+            p1.rotation.set(0.2, 0, 0.1);
+            const p2 = roomBlock(new THREE.BoxGeometry(0.6, 0.5, 0.15), cushionYellowMat, 0.2, 0.85, -2.9, roomGroup);
+            p2.rotation.set(0.2, 0, -0.1);
+            const p3 = roomBlock(new THREE.BoxGeometry(0.6, 0.5, 0.15), cushionYellowMat, 1.0, 0.85, -2.8, roomGroup);
+            p3.rotation.set(0.2, -0.4, 0);
+
+            // 5. Glass Coffee Table
+            roomBlock(new THREE.CylinderGeometry(1.2, 1.2, 0.04, 32), glassMat, -0.5, 0.5, 0.5, roomGroup);
+            // Metal star legs
+            roomBlock(new THREE.BoxGeometry(1.8, 0.04, 0.04), goldMetalMat, -0.5, 0.25, 0.5, roomGroup);
+            const crossLeg = roomBlock(new THREE.BoxGeometry(1.8, 0.04, 0.04), goldMetalMat, -0.5, 0.25, 0.5, roomGroup);
+            crossLeg.rotation.y = Math.PI / 2;
+
+            // 6. TV Console (Dark Wood)
+            roomBlock(new THREE.BoxGeometry(3.5, 0.6, 0.8), darkWoodMat, 3.0, 0.3, 3.5, roomGroup);
+            // TV
+            roomBlock(new THREE.BoxGeometry(2.4, 1.4, 0.08), blackMetalMat, 3.0, 1.4, 3.5, roomGroup);
+
+            // 7. Small Side Table & Lamp
+            roomBlock(new THREE.CylinderGeometry(0.4, 0.4, 0.5, 16), darkWoodMat, -3.5, 0.25, -1.0, roomGroup);
+            roomBlock(new THREE.CylinderGeometry(0.05, 0.05, 0.4, 8), goldMetalMat, -3.5, 0.7, -1.0, roomGroup); // lamp base
+            roomBlock(new THREE.CylinderGeometry(0.2, 0.3, 0.3, 16), wallMat, -3.5, 1.05, -1.0, roomGroup); // lamp shade
+
+            // 8. Plant in Corner
+            roomBlock(new THREE.CylinderGeometry(0.3, 0.2, 0.5, 16), potMat, 4.0, 0.25, -4.0, roomGroup);
+            // Leaves
+            for(let i=0; i<8; i++) {
+                const leaf = roomBlock(new THREE.BoxGeometry(0.1, 0.8, 0.2), leafMat, 4.0, 0.8, -4.0, roomGroup);
+                leaf.rotation.set(Math.random() * 0.5, Math.random() * Math.PI, Math.random() * 0.5);
+            }
+        }
+        buildCozyIsometricRoom();
+
+        /* ==========================================
+           GSAP SCROLL ANIMATION TIMELINE
+           ========================================== */
+        const camTarget = new THREE.Vector3(0, 7, 0);
+        camera.position.set(25, 22, 30);
+        camera.lookAt(camTarget);
+
+        window.addEventListener('load', () => {
+            gsap.to(".loader-bar-fill", { width: "100%", duration: 0.5, onComplete: () => {
+                gsap.to("#loader", { opacity: 0, duration: 0.5, onComplete: () => document.getElementById('loader').style.display = 'none' });
+                gsap.to("#sec1 .content-block", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" });
+                gsap.to("#sec1 h1 .hero-char", { y: 0, opacity: 1, scale: 1, rotateX: 0, stagger: 0.025, duration: 0.8, ease: "power4.out" });
+            }});
+        });
+
+        const sTl = gsap.timeline({
+            scrollTrigger: { trigger: ".scroll-container", start: "top top", end: "bottom bottom", scrub: true }
+        });
+
+        // STEP 1: Fade In Lighting & Materials
+        sTl.to(camera.position, { x: 18, y: 20, z: 25, ease: "power1.inOut" }, "s1")
+           .to(camTarget, { x: 0, y: 8, z: 0, ease: "power1.inOut" }, "s1");
+        
+        sTl.to(sunLight, { intensity: 3.5, duration: 0.5 }, "s1");
+        sTl.to(fillLight, { intensity: 1.5, duration: 0.5 }, "s1");
+
+        allRoomMats.forEach(mat => { 
+            sTl.to(mat, { opacity: 1, duration: 0.5, ease: "power2.in" }, "s1"); 
+        });
+
+        // STEP 2: Orbit to Isometric Angle
+        sTl.to(camera.position, { x: 14, y: ROOM_Y + 12, z: 14, ease: "power1.inOut" }, "s2")
+           .to(camTarget, { x: 0, y: ROOM_Y + 1, z: 0, ease: "power1.inOut" }, "s2");
+
+        sTl.fromTo(text3d, { rotationY: -110, rotationX: 15, x: -600, opacity: 0 }, { rotationY: 0, rotationX: 0, x: 0, opacity: 1, ease: "power2.out" }, "s2");
+
+        // STEP 3: Zoom into the Room details
+        sTl.to(camera.position, { x: 10, y: ROOM_Y + 8, z: 10, ease: "power2.inOut" }, "s3")
+           .to(camTarget, { x: -1, y: ROOM_Y + 1.5, z: -1, ease: "power2.inOut" }, "s3");
+
+        // STEP 4: Pull back slightly
+        sTl.to(camera.position, { x: 16, y: ROOM_Y + 14, z: 16, ease: "power2.inOut" }, "s4")
+           .to(camTarget, { x: 0, y: ROOM_Y + 1, z: 0, ease: "power2.inOut" }, "s4");
+
+
+        /* ==========================================
+           RENDER LOOP
+           ========================================== */
+        function animate() {
+            camera.lookAt(camTarget);
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+    </script>
+</body>
+</html>
